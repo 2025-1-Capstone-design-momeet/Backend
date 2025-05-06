@@ -19,9 +19,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화
-                .authorizeRequests(auth -> auth
-                        .anyRequest().permitAll() // 모든 요청에 대해 인증 없이 접근 허용
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // 모든 요청 인증 없이 허용
                 );
+
         return http.build();
     }
 }
