@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -26,82 +28,128 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final UniversityRepository universityRepository;
 
-    public User getUser(String userId) { return userRepository.findById(userId).orElse(null); }
-    public User registerUser(UserDto userDto) {
-        User user = new User(
-                userDto.getUserId(),
-                passwordEncoder.encode(userDto.getPw()),
-                passwordEncoder.encode(userDto.getPhoneNum()),
-                userDto.getName(),
-                userDto.getEmail(),
-                null,
-                false,
-                null,
-                null,
-                null,
-                userDto.isGender()
-        );
-        user = userRepository.save(user);
-
-        // 민감 정보 제거
-        user.setPw(null);
-        user.setPhoneNum(null);
-        user.setStudentNum(null);
-
-        return user;
+    public User getUser(String userId) throws Exception {
+        try {
+            return userRepository.findById(userId).orElse(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
     }
 
-    public User updateUser(UserDto userDto) {
-        User user = userRepository.findById(userDto.getUserId()).orElse(null);
-        if (user == null) return null;
-        user = new User(
-                userDto.getUserId(),
-                passwordEncoder.encode(userDto.getPw()),
-                passwordEncoder.encode(userDto.getPhoneNum()),
-                userDto.getName(),
-                userDto.getEmail(),
-                userDto.getUnivName(),
-                userDto.isSchoolCertification(),
-                userDto.getDepartment(),
-                passwordEncoder.encode(userDto.getStudentNum()),
-                userDto.getGrade(),
-                userDto.isGender()
-        );
-        return userRepository.save(user);
+    @Transactional
+    public boolean registerUser(UserDto userDto) throws Exception {
+        try {
+            // 사용자 ID 중복 확인
+            if (userRepository.existsById(userDto.getUserId())) {
+                return false;
+            }
+            else {
+                User user = new User(
+                        userDto.getUserId(),
+                        passwordEncoder.encode(userDto.getPw()),
+                        passwordEncoder.encode(userDto.getPhoneNum()),
+                        userDto.getName(),
+                        passwordEncoder.encode(userDto.getEmail()),
+                        null,
+                        false,
+                        null,
+                        null,
+                        null,
+                        userDto.isGender()
+                );
+                userRepository.save(user);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    public boolean updateUser(UserDto userDto) throws Exception {
+        try {
+            User user = userRepository.findById(userDto.getUserId()).orElse(null);
+            if (user == null) return false;
+            user = new User(
+                    userDto.getUserId(),
+                    passwordEncoder.encode(userDto.getPw()),
+                    passwordEncoder.encode(userDto.getPhoneNum()),
+                    userDto.getName(),
+                    passwordEncoder.encode(userDto.getEmail()),
+                    passwordEncoder.encode(userDto.getUnivName()),
+                    userDto.isSchoolCertification(),
+                    passwordEncoder.encode(userDto.getDepartment()),
+                    passwordEncoder.encode(userDto.getStudentNum()),
+                    userDto.getGrade(),
+                    userDto.isGender()
+            );
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
     }
 
     // 로그인 이외에도 비밀번호 확인할 때 사용 가능함
-    public boolean loginUser(UserDto userDto) {
-        User user = userRepository.findById(userDto.getUserId()).orElse(null);
-        if (user == null) return false;
-        return passwordEncoder.matches(userDto.getPw(), user.getPw());
+    public boolean loginUser(UserDto userDto) throws Exception {
+        try {
+            User user = userRepository.findById(userDto.getUserId()).orElse(null);
+            if (user == null) return false;
+            return passwordEncoder.matches(userDto.getPw(), user.getPw());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
     }
 
+    //
+
     // 학교인증
-    public boolean sendVerificationCode(String email) {
+    public boolean sendVerificationCode(String email) throws Exception {
         try {
-            // 1. 인증 코드 생성
             String code = String.format("%06d", new Random().nextInt(1000000));
 
-            // 2. Redis에 5분간 저장
             redisTemplate.opsForValue().set("verify:" + email, code, 5, TimeUnit.MINUTES);
 
-            // 3. HTML 메일 발송
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
 
             helper.setTo(email);
-            helper.setFrom("no-reply@momeet.meowning.kr");
+            helper.setFrom("no-reply@momeet.meowning.kr", "mo.meet");
             helper.setSubject("[모밋] 학교 이메일 인증 코드");
 
+            String timestamp = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
             String html = """
-                <div style="font-family: Arial, sans-serif; font-size: 14px; padding: 20px;">
-                    <h2 style="color: #5A67D8;">모밋 이메일 인증</h2>
-                    <p>안녕하세요!</p>
-                    <p>요청하신 인증 코드는 다음과 같습니다:</p>
-                    <div style="font-size: 24px; font-weight: bold; color: #2D3748; margin: 20px 0;">%s</div>
-                    <p>이 코드는 <strong>5분간 유효</strong>합니다.</p>
-                    <p style="color: gray;">실수로 받으셨다면 무시하셔도 됩니다.</p>
+                <div style="font-family: Arial, sans-serif; font-size: 15px; padding: 40px; background-color: #f4f4f4; color: #2D3748;">
+                    <div style="max-width: 460px; margin: auto; background-color: white; padding: 30px 40px; border-radius: 10px;
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                        
+                        <div style="text-align: center; font-size: 20px; font-weight: bold; color: #71B271; margin-bottom: 20px;">
+                            mo.meet
+                        </div>
+            
+                        <h2 style="text-align: center; color: #2D3748; margin-bottom: 16px;">이메일 인증 코드</h2>
+            
+                        <p style="text-align: center;">아래 코드를 입력해 주세요.</p>
+            
+                        <div style="text-align: center; margin: 24px 0;">
+                            <div style="display: inline-block; padding: 14px 28px; font-size: 22px; font-weight: bold;
+                                        background-color: #F0F4F0; color: #2D3748; border-radius: 8px;
+                                        user-select: all; -webkit-user-select: all; cursor: text;">
+                                %s
+                            </div>
+                        </div>
+            
+                        <p style="text-align: center; font-size: 14px;">
+                            이 코드는 <strong>5분간 유효</strong>합니다.
+                        </p>
+                        <p style="text-align: center; font-size: 13px; color: gray;">
+                            인증 요청을 하지 않았다면 이 메일은 무시해 주세요.
+                        </p>
+                    </div>
                 </div>
             """.formatted(code);
 
@@ -112,35 +160,45 @@ public class UserService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            throw new Exception();
         }
     }
 
     @Transactional
-    public void setUserUniversity(String userId, String univName) {
-        // 1. 학교 DB에 등록되어 있지 않으면 추가
-        if (!universityRepository.existsById(univName)) {
-            universityRepository.save(new University(univName));
-        }
+    public void setUserUniversity(String userId, String univName) throws Exception{
+        try {
+            // 1. 학교 DB에 등록되어 있지 않으면 추가
+            if (!universityRepository.existsById(univName)) {
+                universityRepository.save(new University(univName));
+            }
 
-        // 2. 사용자 정보 업데이트
-        User user = userRepository.findById(userId).orElse(null);
-        if (user != null) {
-            user.setUnivName(univName);
-            user.setSchoolCertification(true); // 인증 완료
-            userRepository.save(user);
+            // 2. 사용자 정보 업데이트
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                user.setUnivName(univName);
+                user.setSchoolCertification(true); // 인증 완료
+                userRepository.save(user);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
         }
     }
 
 
-    public boolean verifyCode(String email, String inputCode) {
-        String key = "verify:" + email;
-        String savedCode = redisTemplate.opsForValue().get(key);
+    public boolean verifyCode(String email, String inputCode) throws Exception {
+        try {
+            String key = "verify:" + email;
+            String savedCode = redisTemplate.opsForValue().get(key);
 
-        if (savedCode != null && savedCode.equals(inputCode)) {
-            redisTemplate.delete(key); // 인증 성공 시 코드 제거 (선택적)
-            return true;
+            if (savedCode.equals(inputCode)) {
+                redisTemplate.delete(key); // 인증 성공 시 코드 제거 (선택적)
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
         }
-        return false;
     }
 }
