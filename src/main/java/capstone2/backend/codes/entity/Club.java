@@ -28,7 +28,7 @@ public class Club {
     private String managerId;
 
     @Column(name = "category", nullable = false)
-    private int category;
+    private String category;
 
     @Column(name = "bannerImage")
     private String bannerImage;
