@@ -1,5 +1,6 @@
 package capstone2.backend.codes.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,8 +41,11 @@ public class Post {
     private LocalDateTime date;
 
     @OneToOne(mappedBy = "post")
+    @JsonIgnore // 🔥 순환 끊기
     private ClubPost clubPost;
 
     @OneToOne(mappedBy = "post")
+    @JsonIgnore // 🔥 순환 끊기
     private Poster poster;
+
 }

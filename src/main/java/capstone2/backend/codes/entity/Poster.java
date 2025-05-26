@@ -1,5 +1,6 @@
 package capstone2.backend.codes.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,9 @@ public class Poster {
     private String img;
 
     @MapsId
-    @OneToOne   // Poster.postNum == Post.postNum
+    @OneToOne
     @JoinColumn(name = "postNum", referencedColumnName = "postNum")
+    @JsonIgnore // 🔥 순환 끊기 (또는 DTO로 전환 시 제거 가능)
     private Post post;
+
 }

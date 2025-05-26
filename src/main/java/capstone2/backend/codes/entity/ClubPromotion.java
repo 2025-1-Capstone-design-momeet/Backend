@@ -1,5 +1,6 @@
 package capstone2.backend.codes.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class ClubPromotion {
     private String clubId;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "clubId", referencedColumnName = "clubId") // FK → Club.clubId
     private Club club;
 

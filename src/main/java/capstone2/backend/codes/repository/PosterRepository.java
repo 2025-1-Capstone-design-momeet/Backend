@@ -9,11 +9,12 @@ import java.util.List;
 
 public interface PosterRepository extends JpaRepository<Poster, String> {
     @Query("""
-    SELECT p
+    SELECT DISTINCT p
     FROM Poster p
-    JOIN p.post po
-    JOIN po.clubPost cp
-    JOIN cp.club c
+    JOIN FETCH p.post po
+    JOIN FETCH po.clubPost cp
+    JOIN FETCH cp.club c
+    LEFT JOIN FETCH cp.club.clubPromotion
     WHERE c.univName = :univName
 """)
     List<Poster> findAllByUnivName(@Param("univName") String univName);
