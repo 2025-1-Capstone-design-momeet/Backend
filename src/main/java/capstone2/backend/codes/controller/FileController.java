@@ -2,6 +2,7 @@ package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @RequestMapping("/api/file")
 public class FileController {
-    private final String uploadDir = "src/main/resources/minutes"; // 또는 외부 경로 추천
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     @PostMapping("/upload")
     public ResponseEntity<Response<?>> uploadFile(
