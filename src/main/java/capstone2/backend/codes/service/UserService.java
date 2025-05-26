@@ -1,10 +1,10 @@
 package capstone2.backend.codes.service;
 
 import capstone2.backend.codes.dto.UserDto;
+import capstone2.backend.codes.dto.UserMainDto;
 import capstone2.backend.codes.entity.University;
 import capstone2.backend.codes.entity.User;
-import capstone2.backend.codes.repository.UniversityRepository;
-import capstone2.backend.codes.repository.UserRepository;
+import capstone2.backend.codes.repository.*;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +28,10 @@ public class UserService {
     private final JavaMailSender mailSender;
     private final RedisTemplate<String, String> redisTemplate;
     private final UniversityRepository universityRepository;
+    private final ClubRepository clubRepository;
+    private final ClubPromotionRepository clubPromotionRepository;
+    private final ClubMembersRepository clubMembersRepository;
+    private final PosterRepository posterRepository;
 
     public User getUser(String userId) throws Exception {
         try {
@@ -196,6 +201,24 @@ public class UserService {
                 return true;
             }
             return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // public UserMainDto(User u, List<Club> mc, List<Poster> p, List<ClubPromotion> cp)
+    public UserMainDto getUserMainInfo(String userId) throws Exception {
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                return new UserMainDto(user,
+                        clubMembersRepository.findClubsByUserId(userId),
+                        posterRepository.findAllByUnivName(user.getUnivName()),
+                        clubPromotionRepository.findAllByUnivName(user.getUnivName())
+                );
+            }
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();

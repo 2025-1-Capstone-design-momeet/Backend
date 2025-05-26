@@ -3,7 +3,9 @@ package capstone2.backend.codes.controller;
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.UserDto;
 import capstone2.backend.codes.dto.UserInfoDto;
+import capstone2.backend.codes.dto.UserMainDto;
 import capstone2.backend.codes.entity.User;
+import capstone2.backend.codes.service.ClubService;
 import capstone2.backend.codes.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final ClubService clubService;
 
     @PostMapping("/register")
     public ResponseEntity<Response<?>> registerUser(@RequestBody UserDto dto) {
@@ -96,10 +99,10 @@ public class UserController {
     @PostMapping("/main")
     public ResponseEntity<Response<?>> getMain(@RequestBody UserDto dto) {
         try {
-            User user = userService.getUser(dto.getUserId());
-            if (user != null) {
+            UserMainDto main = userService.getUserMainInfo(dto.getUserId());
+            if (main.getUserId() != null) {
                 return ResponseEntity.ok(
-                        new Response<>("true", "메인 페이지 조회가 완료되었습니다.", user)
+                        new Response<>("true", "메인 페이지 조회가 완료되었습니다.", main)
                 );
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
