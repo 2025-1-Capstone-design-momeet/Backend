@@ -1,0 +1,18 @@
+# 빌드시 불필요하거나 용량 큰 항목
+build/
+.gradle/
+.idea/
+images/
+minute/
+*.log
+*.zip
+*.hwp
+*.csv
+
+# 보안 민감 정보
+.env
+application-*.yml
+
+# Git 관련
+.git/
+.gitignore
