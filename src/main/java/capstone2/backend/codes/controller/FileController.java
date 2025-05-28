@@ -97,7 +97,12 @@ public class FileController {
                 }
             }
 
-            Path imagePath = Paths.get(baseDir, filename);
+            Path imagePath = Paths.get(baseDir, filename).normalize();
+            if (!imagePath.startsWith(Paths.get(baseDir))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new Response<>("false", "허용되지 않은 경로입니다.", null));
+            }
+
             if (!Files.exists(imagePath) || !Files.isReadable(imagePath)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new Response<>("false", "이미지 파일이 존재하지 않거나 읽을 수 없습니다.", null));
@@ -121,6 +126,4 @@ public class FileController {
                     .body(new Response<>("false", "이미지 파일 반환 중 오류 발생", null));
         }
     }
-
-
 }
