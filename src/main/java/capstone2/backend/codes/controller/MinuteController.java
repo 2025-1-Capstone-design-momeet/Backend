@@ -1,28 +1,13 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
-import capstone2.backend.codes.dto.MinuteDto;
 import capstone2.backend.codes.service.MinuteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -65,6 +50,30 @@ public class MinuteController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("CSV 저장 실패: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/detail")
+    public ResponseEntity<Response<?>> getMinuteDetail(@RequestParam("minuteId") String minuteId) {
+        try {
+            return ResponseEntity.ok(
+                    new Response<>("true", "회의록 상세 조회 성공", minuteService.getMinuteDetails(minuteId))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "회의록 상세 조회 실패", null));
+        }
+    }
+
+    @PostMapping("/list")
+    public ResponseEntity<Response<?>> getMinutesByUserId(@RequestParam("userId") String userId) {
+        try {
+            return ResponseEntity.ok(
+                    new Response<>("true", "회의록 목록 조회 성공", minuteService.getMinutesByUserId(userId))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "회의록 목록 조회 실패", null));
         }
     }
 

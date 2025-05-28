@@ -5,13 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class MinuteDto {
     private String minuteId;
-    private String clubId;
     private LocalDateTime date;
-    private String summaryContents;
+    private String title;              // 회의 제목
+    private String summary;            // 회의 요약
+    private String filePath;
+    private List<ScriptLine> script;
 }
+
