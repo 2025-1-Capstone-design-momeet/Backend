@@ -1,5 +1,6 @@
 package capstone2.backend.codes.service;
 
+import capstone2.backend.codes.dto.MinuteDetailDto;
 import capstone2.backend.codes.dto.MinuteDto;
 import capstone2.backend.codes.dto.MinuteListDto;
 import capstone2.backend.codes.dto.ScriptLine;
@@ -166,7 +167,7 @@ public class MinuteService {
         return result;
     }
 
-    public MinuteDto getMinuteDetails(String minuteId) {
+    public MinuteDetailDto getMinuteDetails(String minuteId) {
         Minute minute = minuteRepository.findById(minuteId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 minuteId의 회의록이 존재하지 않습니다: " + minuteId));
 
@@ -177,10 +178,12 @@ public class MinuteService {
         try (Reader reader = Files.newBufferedReader(path);
              CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader("Speaker", "Transcription"))) {
             for (CSVRecord record : parser) {
-                String speaker = record.get("Speaker");
-                String text = record.get("Transcription");
+                String speaker = record.get("Speaker").trim();
+                String text = record.get("Transcription").trim();
 
-                if (!"회의 제목".equals(speaker) && !"회의 요약".equals(speaker)) {
+                if (!"회의 제목".equals(speaker)
+                        && !"회의 요약".equals(speaker)
+                        && !"Speaker".equals(speaker)) {
                     script.add(new ScriptLine(speaker, text));
                 }
             }
@@ -192,12 +195,11 @@ public class MinuteService {
         String title = summaryInfo.getOrDefault("title", "현재 서버에서 처리 중입니다.");
         String summary = summaryInfo.getOrDefault("summary", "현재 서버에서 처리 중입니다.");
 
-        return new MinuteDto(
+        return new MinuteDetailDto(
                 minute.getMinuteId(),
                 minute.getDate(),
                 title,
                 summary,
-                minute.getFilePath(),
                 script
         );
     }
