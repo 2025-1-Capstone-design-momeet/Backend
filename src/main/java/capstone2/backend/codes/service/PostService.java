@@ -10,7 +10,9 @@ import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -18,8 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -28,6 +29,7 @@ public class PostService {
     @Value("${file.post-dir}")
     private String postDir;
     private final PostRepository postRepository;
+    private final ClubRepository clubRepository;
 
     // 게시글 작성
     public boolean writePost(PostWriteDTO postWriteDTO, MultipartFile file) throws Exception {
@@ -98,4 +100,83 @@ public class PostService {
             throw new Exception();
         }
     }
+
+    // 게시글 찾기
+    public boolean findPost(String postNum) throws Exception {
+        try {
+            if (postRepository.existsById(postNum)) {
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // 게시글 삭제
+    public boolean deletePost(String postNum) throws Exception {
+        try {
+            if (postRepository.existsById(postNum)) {
+                postRepository.deleteById(postNum);
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // 게시글 가져오기
+    public PostDto getPost(String postNum) throws Exception {
+        try {
+            Post post = postRepository.findById(postNum)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 postNum의 게시글을 찾을 수 없습니다."));
+
+            return new PostDto(
+                    post.getPostNum(),
+                    post.getTitle(),
+                    post.getContent(),
+                    post.getType(),
+                    PostType.fromCode(post.getType()).getLabel(),
+                    post.getLike(),
+                    post.getFixaction(),
+                    post.getDate()
+            );
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // 동아리 전체 게시글 가져오기
+    @Transactional
+    public List<PostDto> getClubPostList(String clubId) throws Exception {
+        try{
+            Club club = clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 clubId의 동아리를 찾을 수 없습니다."));
+
+            List<ClubPost> clubPostList = club.getClubPosts(); // 연결된 모든 게시글
+            List<PostDto> postDtoList = new ArrayList<>();
+
+            for (ClubPost clubPost : clubPostList) {
+                postDtoList.add(getPost(clubPost.getPostNum()));
+            }
+            return postDtoList;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+
 }
