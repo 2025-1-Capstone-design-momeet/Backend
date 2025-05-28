@@ -137,8 +137,8 @@ public class MinuteService {
             throw new RuntimeException("CSV 파일 저장 실패", e);
         }
 
-        String encodedPath = passwordEncoder.encode(filename);
-        minute.setFilePath(encodedPath);
+        String filePath = filename;
+        minute.setFilePath(filePath);
 
         Map<String, String> summaryInfo = readCSVTitleAndSummary(targetPath);
         minute.setSummaryContents(summaryInfo.get("title"));
