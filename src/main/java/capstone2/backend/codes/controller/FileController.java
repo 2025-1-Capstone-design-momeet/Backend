@@ -62,13 +62,13 @@ public class FileController {
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(
-                    new Response<>("success", "파일 목록 조회 성공", fileNames)
+                    new Response<>("true", "파일 목록 조회 성공", fileNames)
             );
 
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    new Response<>("fail", "파일 목록 조회 실패", null)
+                    new Response<>("false", "파일 목록 조회 실패", null)
             );
         }
     }
