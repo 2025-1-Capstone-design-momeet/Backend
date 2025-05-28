@@ -9,11 +9,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    @Value("${REDIS_HOST}")
+    private String redisHost;
+    @Value("${REDIS_PORT}")
+    private int redisPort;
+    @Value("${REDIS_PASSWORD}")
+    private String redisPassword;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory("raspberrypi.meowning.kr", 6379);
-        factory.setPassword("Qhdks3836@");
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(redisHost, redisPort);
+        factory.setPassword(redisPassword);
         return factory;
     }
 
