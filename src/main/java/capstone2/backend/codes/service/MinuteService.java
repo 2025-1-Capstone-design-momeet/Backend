@@ -47,7 +47,7 @@ public class MinuteService {
     @Value("${ai.api.url}")
     private String aiApiUrl;
 
-    public ResponseEntity<String> createMinute(MultipartFile file, String clubId) {
+    public ResponseEntity<String> createMinute(MultipartFile file, String clubId, int numSpeakers) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 clubId의 클럽이 존재하지 않습니다: " + clubId));
 
@@ -92,10 +92,10 @@ public class MinuteService {
         );
         minuteRepository.save(minute);
 
-        return sendToAIServer(targetPath.toFile(), minuteId);
+        return sendToAIServer(targetPath.toFile(), minuteId, numSpeakers);
     }
 
-    private ResponseEntity<String> sendToAIServer(File file, String minuteId) {
+    private ResponseEntity<String> sendToAIServer(File file, String minuteId, int numSpeakers) {
         RestTemplate restTemplate = new RestTemplate();
         String targetUrl = aiApiUrl + "/process_audio/";
 
@@ -105,9 +105,9 @@ public class MinuteService {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", new FileSystemResource(file));
         body.add("minuteId", minuteId);
+        body.add("num_speakers", numSpeakers);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
         try {
             return restTemplate.postForEntity(targetUrl, requestEntity, String.class);
         } catch (Exception e) {

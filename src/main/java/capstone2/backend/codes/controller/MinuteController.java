@@ -28,10 +28,11 @@ public class MinuteController {
     @PostMapping("/create")
     public ResponseEntity<Response<?>> createMinute(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("clubId") String clubId
+            @RequestPart("clubId") String clubId,
+            @RequestPart("num_speakers") int numSpeakers
     ) {
         try {
-            ResponseEntity<String> aiResponse = minuteService.createMinute(file, clubId);
+            ResponseEntity<String> aiResponse = minuteService.createMinute(file, clubId, numSpeakers);
             return ResponseEntity.ok(new Response<>("true", "회의 생성 완료", aiResponse));
         } catch (Exception e) {
             e.printStackTrace();
