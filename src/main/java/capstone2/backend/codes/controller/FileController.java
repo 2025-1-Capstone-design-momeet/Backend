@@ -89,7 +89,7 @@ public class FileController {
             String baseDir;
             switch (type) {
                 case "poster" -> baseDir = imageDir; // @Value("${file.image-dir}")
-                case "post" -> baseDir = postDir; // @Value("${file.post-dir}")
+                case "posts" -> baseDir = postDir; // @Value("${file.post-dir}")
                 default -> {
                     return ResponseEntity.badRequest().body(
                             new Response<>("false", "지원하지 않는 타입입니다: " + type, null)

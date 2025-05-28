@@ -15,14 +15,15 @@ public class ClubPost {
     @Column(name = "postNum")
     private String postNum;
 
+    @MapsId  // ✅ Post의 postNum을 ID로 사용
     @OneToOne
     @JoinColumn(name = "postNum")
-    @JsonIgnore // 🔥 순환 끊기
+    @JsonIgnore
     private Post post;
 
     @ManyToOne
     @JoinColumn(name = "clubId", referencedColumnName = "clubId")
-    @JsonIgnore // 🔥 순환 끊기 (클럽 전체 정보까지 내려보낼 필요 없으면)
+    @JsonIgnore
     private Club club;
-
 }
+
