@@ -31,9 +31,10 @@ public class MinuteController {
             @RequestPart("clubId") String clubId
     ) {
         try {
-            minuteService.createMinute(file, clubId);
-            return ResponseEntity.ok(new Response<>("true", "회의 생성 완료", null));
+            ResponseEntity<String> aiResponse = minuteService.createMinute(file, clubId);
+            return ResponseEntity.ok(new Response<>("true", "회의 생성 완료", aiResponse));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Response<>("false", "오류 발생", null));
         }
