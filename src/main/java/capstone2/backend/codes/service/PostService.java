@@ -1,12 +1,8 @@
 package capstone2.backend.codes.service;
 
-import capstone2.backend.codes.dto.ClubDto;
-import capstone2.backend.codes.dto.PostDto;
 import capstone2.backend.codes.dto.PostWriteDTO;
-import capstone2.backend.codes.dto.UserDto;
 import capstone2.backend.codes.entity.*;
 import capstone2.backend.codes.enums.PostType;
-import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

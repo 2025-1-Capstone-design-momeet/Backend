@@ -1,24 +1,14 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
-import capstone2.backend.codes.dto.ClubDto;
-import capstone2.backend.codes.dto.PostDto;
 import capstone2.backend.codes.dto.PostWriteDTO;
-import capstone2.backend.codes.dto.UserDto;
 import capstone2.backend.codes.enums.PostType;
 import capstone2.backend.codes.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
