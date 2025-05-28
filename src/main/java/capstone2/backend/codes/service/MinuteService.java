@@ -1,6 +1,7 @@
 package capstone2.backend.codes.service;
 
 import capstone2.backend.codes.dto.MinuteDto;
+import capstone2.backend.codes.dto.MinuteListDto;
 import capstone2.backend.codes.entity.Club;
 import capstone2.backend.codes.entity.Minute;
 import capstone2.backend.codes.repository.ClubRepository;
@@ -181,32 +182,32 @@ public class MinuteService {
             throw new RuntimeException("CSV 읽기 실패", e);
         }
 
+        // 기본값 처리
+        String title = summaryInfo.getOrDefault("title", "현재 서버에서 처리 중입니다.");
+        String summary = summaryInfo.getOrDefault("summary", "현재 서버에서 처리 중입니다.");
+
         return new MinuteDto(
                 minute.getMinuteId(),
                 minute.getDate(),
-                summaryInfo.getOrDefault("title", ""),
-                summaryInfo.getOrDefault("summary", ""),
+                title,
+                summary,
                 minute.getFilePath(),
                 script
         );
     }
 
-    public MinuteListDto getMinutesByUserId(String userId) {
+    public List<MinuteListDto> getMinutesByUserId(String userId) {
         List<Minute> minutes = minuteRepository.findMinutesByUserId(userId);
-        List<MinuteDto> minuteDtos = new ArrayList<>();
-
+        List<MinuteListDto> minuteDtos = new ArrayList<>();
         for (Minute minute : minutes) {
-            MinuteDto dto = new MinuteDto(
+            String title = (minute.getSummaryContents() != null && !minute.getSummaryContents().isEmpty())
+                    ? minute.getSummaryContents() : "현재 서버에서 처리 중입니다.";
+            minuteDtos.add(new MinuteListDto(
                     minute.getMinuteId(),
-                    minute.getDate(),
-                    null, // 제목은 CSV에서 읽어야 함
-                    null, // 요약은 CSV에서 읽어야 함
-                    minute.getFilePath(),
-                    Collections.emptyList() // 스크립트는 나중에 채워야 함
-            );
-            minuteDtos.add(dto);
+                    title,
+                    minute.getDate()
+            ));
         }
-
-        return new MinuteListDto(minutes.size(), minuteDtos);
+        return minuteDtos;
     }
 }
