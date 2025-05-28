@@ -48,4 +48,8 @@ public class Post {
     @JsonIgnore // 🔥 순환 끊기
     private Poster poster;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private User user;
+
 }
