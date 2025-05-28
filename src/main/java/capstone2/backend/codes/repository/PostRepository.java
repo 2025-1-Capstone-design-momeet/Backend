@@ -31,4 +31,6 @@ public interface PostRepository extends JpaRepository<Post, String> {
     ORDER BY p.date DESC
 """)
     List<AllPostDto> findAllPostsByUnivName(@Param("univName") String univName);
+
+
 }
