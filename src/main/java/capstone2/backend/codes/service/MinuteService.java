@@ -2,11 +2,11 @@ package capstone2.backend.codes.service;
 
 import capstone2.backend.codes.dto.MinuteDto;
 import capstone2.backend.codes.dto.MinuteListDto;
+import capstone2.backend.codes.dto.ScriptLine;
 import capstone2.backend.codes.entity.Club;
 import capstone2.backend.codes.entity.Minute;
 import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.MinuteRepository;
-import capstone2.backend.codes.dto.ScriptLine;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -47,6 +47,9 @@ public class MinuteService {
     @Value("${ai.api.url}")
     private String aiApiUrl;
 
+    @Value("${ai.api.host}")
+    private String aiServerHost;
+
     public ResponseEntity<String> createMinute(MultipartFile file, String clubId, int numSpeakers) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 clubId의 클럽이 존재하지 않습니다: " + clubId));
@@ -69,6 +72,7 @@ public class MinuteService {
         try {
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("파일 저장 실패", e);
         }
 
@@ -101,6 +105,7 @@ public class MinuteService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("Host", aiServerHost); // 👈 필수 헤더 추가
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", new FileSystemResource(file));
@@ -111,6 +116,7 @@ public class MinuteService {
         try {
             return restTemplate.postForEntity(targetUrl, requestEntity, String.class);
         } catch (Exception e) {
+            e.printStackTrace(); // 👈 에러 로그 출력
             minuteRepository.deleteById(minuteId);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("AI 서버 통신 오류: " + e.getMessage());
@@ -126,16 +132,15 @@ public class MinuteService {
         try {
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("CSV 파일 저장 실패", e);
         }
 
-        // 파일 경로 저장
         String encodedPath = passwordEncoder.encode(filename);
         minute.setFilePath(encodedPath);
 
-        // 제목, 요약 읽기
         Map<String, String> summaryInfo = readCSVTitleAndSummary(targetPath);
-        minute.setSummaryContents(summaryInfo.get("title")); // 제목만 DB에 저장
+        minute.setSummaryContents(summaryInfo.get("title"));
 
         minuteRepository.save(minute);
     }
@@ -155,6 +160,7 @@ public class MinuteService {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("CSV 제목/요약 읽기 실패", e);
         }
         return result;
@@ -179,10 +185,10 @@ public class MinuteService {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("CSV 읽기 실패", e);
         }
 
-        // 기본값 처리
         String title = summaryInfo.getOrDefault("title", "현재 서버에서 처리 중입니다.");
         String summary = summaryInfo.getOrDefault("summary", "현재 서버에서 처리 중입니다.");
 
@@ -197,17 +203,22 @@ public class MinuteService {
     }
 
     public List<MinuteListDto> getMinutesByUserId(String userId) {
-        List<Minute> minutes = minuteRepository.findMinutesByUserId(userId);
-        List<MinuteListDto> minuteDtos = new ArrayList<>();
-        for (Minute minute : minutes) {
-            String title = (minute.getSummaryContents() != null && !minute.getSummaryContents().isEmpty())
-                    ? minute.getSummaryContents() : "현재 서버에서 처리 중입니다.";
-            minuteDtos.add(new MinuteListDto(
-                    minute.getMinuteId(),
-                    title,
-                    minute.getDate()
-            ));
+        try {
+            List<Minute> minutes = minuteRepository.findMinutesByUserId(userId);
+            List<MinuteListDto> minuteDtos = new ArrayList<>();
+            for (Minute minute : minutes) {
+                String title = (minute.getSummaryContents() != null && !minute.getSummaryContents().isEmpty())
+                        ? minute.getSummaryContents() : "현재 서버에서 처리 중입니다.";
+                minuteDtos.add(new MinuteListDto(
+                        minute.getMinuteId(),
+                        title,
+                        minute.getDate()
+                ));
+            }
+            return minuteDtos;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("회의록 목록 조회 실패", e);
         }
-        return minuteDtos;
     }
 }

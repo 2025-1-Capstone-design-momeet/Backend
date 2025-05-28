@@ -1,6 +1,8 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
+import capstone2.backend.codes.dto.MinuteIdDto;
+import capstone2.backend.codes.dto.UserIdDto;
 import capstone2.backend.codes.service.MinuteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +30,8 @@ public class MinuteController {
     @PostMapping("/create")
     public ResponseEntity<Response<?>> createMinute(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("clubId") String clubId,
-            @RequestPart("num_speakers") int numSpeakers
+            @RequestParam("clubId") String clubId,
+            @RequestParam("num_speakers") int numSpeakers
     ) {
         try {
             ResponseEntity<String> aiResponse = minuteService.createMinute(file, clubId, numSpeakers);
@@ -56,10 +58,11 @@ public class MinuteController {
     }
 
     @PostMapping("/detail")
-    public ResponseEntity<Response<?>> getMinuteDetail(@RequestParam("minuteId") String minuteId) {
+    public ResponseEntity<Response<?>> getMinuteDetail(@RequestBody MinuteIdDto minuteIdDto) {
         try {
             return ResponseEntity.ok(
-                    new Response<>("true", "회의록 상세 조회 성공", minuteService.getMinuteDetails(minuteId))
+                    new Response<>("true", "회의록 상세 조회 성공",
+                            minuteService.getMinuteDetails(minuteIdDto.getMinuteId()))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -68,10 +71,11 @@ public class MinuteController {
     }
 
     @PostMapping("/list")
-    public ResponseEntity<Response<?>> getMinutesByUserId(@RequestParam("userId") String userId) {
+    public ResponseEntity<Response<?>> getMinutesByUserId(@RequestBody UserIdDto userIdDto) {
         try {
             return ResponseEntity.ok(
-                    new Response<>("true", "회의록 목록 조회 성공", minuteService.getMinutesByUserId(userId))
+                    new Response<>("true", "회의록 목록 조회 성공",
+                            minuteService.getMinutesByUserId(userIdDto.getUserId()))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
