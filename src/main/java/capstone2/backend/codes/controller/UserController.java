@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
-    private final ClubService clubService;
 
     @PostMapping("/register")
     public ResponseEntity<Response<?>> registerUser(@RequestBody UserDto dto) {
