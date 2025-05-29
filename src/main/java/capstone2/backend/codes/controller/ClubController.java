@@ -1,9 +1,7 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
-import capstone2.backend.codes.dto.ClubDto;
-import capstone2.backend.codes.dto.WaitingListDecisionDto;
-import capstone2.backend.codes.dto.WaitingListDto;
+import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,18 +11,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/club")
 public class ClubController {
     private final ClubService clubService;
-/*    @PostMapping("/main")
-    public ResponseEntity<Response<?>> getClubsByUserId(@RequestBody String userId) {
+    @PostMapping("/main")
+    public ResponseEntity<Response<?>> getClubMain(@RequestBody ClubIdRequestDto clubIdRequestDto) {
         try {
+            ClubMainDto dto = clubService.getClubMainInfo(clubIdRequestDto.getClubId());
+            return ResponseEntity.ok(new Response<>("true", "클럽 메인 페이지 조회 성공", dto));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new Response<>("false", e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "클럽 메인 정보 조회 중 오류 발생", null));
         }
-    }*/
+    }
 
     @PostMapping("/create")
     public ResponseEntity<Response<?>> createClub(@RequestBody ClubDto clubDto) {

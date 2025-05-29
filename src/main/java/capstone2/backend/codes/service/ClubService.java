@@ -1,12 +1,12 @@
 package capstone2.backend.codes.service;
 
-import capstone2.backend.codes.dto.ClubDto;
-import capstone2.backend.codes.dto.WaitingListDecisionDto;
-import capstone2.backend.codes.dto.WaitingListDto;
+import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.entity.Club;
 import capstone2.backend.codes.entity.ClubMembers;
+import capstone2.backend.codes.entity.Post;
 import capstone2.backend.codes.entity.WaitingList;
 import capstone2.backend.codes.repository.ClubMembersRepository;
+import capstone2.backend.codes.repository.ClubPostRepository;
 import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.WaitingListRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,8 @@ public class ClubService {
     private final ClubRepository clubRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final WaitingListRepository waitingListRepository;
+    private final ClubPostRepository clubPostRepository;
+    private final CalendarService calendarService;
 
     // 내 클럽 조회
     public List<Club> getClubsByUserId(String userId) throws Exception {
@@ -114,5 +116,52 @@ public class ClubService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public List<RecentPostDto> getTop3RecentPosts(String clubId) {
+        return clubPostRepository.findTop3ByClub_ClubIdOrderByPost_FixactionDescPost_DateDesc(clubId).stream()
+                .map(cp -> {
+                    Post p = cp.getPost();
+                    return new RecentPostDto(
+                            p.getPostNum(),
+                            p.getTitle(),
+                            p.getLike(),
+                            p.getDate()
+                    );
+                })
+                .toList();
+    }
+    public ClubMainDto getClubMainInfo(String clubId) {
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
+
+        int memberCount = clubMembersRepository.countByClubId(clubId);
+        String welcomeMessage = "안녕하세요, " + club.getClubName() + " 입니다!";
+        String bannerImage = club.getBannerImage();
+
+        // ✅ upcoming 일정 가져오기
+        UpcomingScheduleDto upcoming = calendarService.getUpcomingSchedule(clubId).orElse(null);
+
+        // ✅ 최근 게시글 3개 (fixaction → 최신순)
+        List<RecentPostDto> recentPosts = clubPostRepository
+                .findTop3ByClub_ClubIdOrderByPost_FixactionDescPost_DateDesc(clubId)
+                .stream()
+                .map(cp -> {
+                    Post post = cp.getPost();
+                    return new RecentPostDto(post.getPostNum(), post.getTitle(), post.getLike(), post.getDate());
+                })
+                .toList();
+
+        return new ClubMainDto(
+                club.getClubName(),
+                club.getUnivName(),
+                club.getCategory(),
+                club.isOfficial(),
+                memberCount,
+                bannerImage,
+                welcomeMessage,
+                upcoming != null ? List.of(upcoming) : List.of(),
+                recentPosts
+        );
     }
 }

@@ -2,7 +2,7 @@ package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.MinuteIdDto;
-import capstone2.backend.codes.dto.UserIdDto;
+import capstone2.backend.codes.dto.UserIdRequestDto;
 import capstone2.backend.codes.service.MinuteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,11 +79,11 @@ public class MinuteController {
     }
 
     @PostMapping("/list")
-    public ResponseEntity<Response<?>> getMinutesByUserId(@RequestBody UserIdDto userIdDto) {
+    public ResponseEntity<Response<?>> getMinutesByUserId(@RequestBody UserIdRequestDto userIdRequestDto) {
         try {
             return ResponseEntity.ok(
                     new Response<>("true", "회의록 목록 조회 성공",
-                            minuteService.getMinutesByUserId(userIdDto.getUserId()))
+                            minuteService.getMinutesByUserId(userIdRequestDto.getUserId()))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -18,4 +18,5 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers, ClubMe
         WHERE cm.userId = :userId
     """)
     List<Club> findClubsByUserId(@Param("userId") String userId);
+    int countByClubId(String clubId);
 }
