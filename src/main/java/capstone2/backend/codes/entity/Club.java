@@ -40,6 +40,10 @@ public class Club {
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClubPost> clubPosts;
 
+    // Club ↔ Vote 역방향 관계 추가
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Vote> clubVotes;
+
     // Club ↔ clubPromotion 역방향 관계 추가
     @OneToOne(mappedBy = "club")
     private ClubPromotion clubPromotion;

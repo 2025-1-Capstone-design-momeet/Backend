@@ -1,11 +1,14 @@
 package capstone2.backend.codes.service;
 
+import capstone2.backend.codes.dto.PostDeleteDto;
 import capstone2.backend.codes.dto.PostDto;
-import capstone2.backend.codes.dto.PostWriteDTO;
+import capstone2.backend.codes.dto.PostWriteDto;
+import capstone2.backend.codes.dto.PostWriteDto;
 import capstone2.backend.codes.entity.*;
 import capstone2.backend.codes.enums.PostType;
 import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.PostRepository;
+import capstone2.backend.codes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.parameters.P;
@@ -28,14 +31,15 @@ public class PostService {
     private String postDir;
     private final PostRepository postRepository;
     private final ClubRepository clubRepository;
+    private final UserRepository userRepository;
 
     // 게시글 작성
-    public boolean writePost(PostWriteDTO postWriteDTO, MultipartFile file) throws Exception {
+    public boolean writePost(PostWriteDto postWriteDto, MultipartFile file) throws Exception {
         try {
-            PostType type = PostType.fromCode(postWriteDTO.getType());
+            PostType type = PostType.fromCode(postWriteDto.getType());
             String postNum = UUID.randomUUID().toString().replace("-", "");
             User user = new User(
-                    postWriteDTO.getUserId(),
+                    postWriteDto.getUserId(),
                     "password", "phoneNum", "name", "email",
                     null, true, null,
                     null, null, true
@@ -54,13 +58,13 @@ public class PostService {
 
             Post post = new Post(
                     postNum,
-                    postWriteDTO.getTitle(),
-                    postWriteDTO.getContent(),
-                    postWriteDTO.getType(),
+                    postWriteDto.getTitle(),
+                    postWriteDto.getContent(),
+                    postWriteDto.getType(),
                     filename,
                     0,
-                    postWriteDTO.getFixation(),
-                    postWriteDTO.getDate(),
+                    postWriteDto.getFixation(),
+                    postWriteDto.getDate(),
                     null,  // ClubPost는 아래에서 설정
                     null,   // Poster도 아직 없음
                     user
@@ -69,9 +73,9 @@ public class PostService {
             switch (type){
                 case GENERAL -> {
                     Club club = new Club(
-                            postWriteDTO.getClubId(),
+                            postWriteDto.getClubId(),
                             "clubName", null, null, "category",
-                            null, null, null, null
+                            null, null, null, null,null
                     );
                     // ClubPost 객체 생성 및 연결
                     ClubPost clubPost = new ClubPost();
@@ -116,10 +120,15 @@ public class PostService {
     }
 
     // 게시글 삭제
-    public boolean deletePost(String postNum) throws Exception {
+    public boolean deletePost(PostDeleteDto postDeleteDto) throws Exception {
         try {
-            if (postRepository.existsById(postNum)) {
-                postRepository.deleteById(postNum);
+            Post post = postRepository.findById(postDeleteDto.getPostNum())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 postNum의 게시글을 찾을 수 없습니다."));
+            User user = userRepository.findById(postDeleteDto.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 게시글을 찾을 수 없습니다."));
+
+            if (Objects.equals(post.getUser().getUserId(), user.getUserId())) {
+                postRepository.deleteById(post.getPostNum());
                 return true;
             }
             else{
