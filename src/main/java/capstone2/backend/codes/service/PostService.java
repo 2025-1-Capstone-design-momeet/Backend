@@ -144,6 +144,7 @@ public class PostService {
                     post.getContent(),
                     post.getType(),
                     PostType.fromCode(post.getType()).getLabel(),
+                    post.getFile(),
                     post.getLike(),
                     post.getFixaction(),
                     post.getDate()

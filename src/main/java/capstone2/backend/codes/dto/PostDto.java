@@ -16,6 +16,7 @@ public class PostDto {
 
     private int type;             // DB에 저장된 정수형 타입
     private String typeLabel;     // enum에서 가져온 한글 설명
+    private String file;
 
     private int like;
     private int fixation;
