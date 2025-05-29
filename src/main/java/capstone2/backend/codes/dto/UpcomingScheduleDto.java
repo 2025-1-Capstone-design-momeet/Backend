@@ -4,9 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserIdDto {
-    private String userId;
+public class UpcomingScheduleDto {
+    private String title;
+    private LocalDate date;
 }

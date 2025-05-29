@@ -4,11 +4,12 @@ import capstone2.backend.codes.dto.PostDto;
 import capstone2.backend.codes.dto.PostWriteDTO;
 import capstone2.backend.codes.entity.*;
 import capstone2.backend.codes.enums.PostType;
+import capstone2.backend.codes.repository.ClubPostRepository;
 import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.PostRepository;
+import capstone2.backend.codes.repository.PosterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,113 +27,35 @@ import java.util.*;
 public class PostService {
     @Value("${file.post-dir}")
     private String postDir;
+
     private final PostRepository postRepository;
     private final ClubRepository clubRepository;
+    private final ClubPostRepository clubPostRepository;
+    private final PosterRepository posterRepository;
 
-    // 게시글 작성
-    public boolean writePost(PostWriteDTO postWriteDTO, MultipartFile file) throws Exception {
+    public boolean findPost(String postNum) throws Exception {
         try {
-            PostType type = PostType.fromCode(postWriteDTO.getType());
-            String postNum = UUID.randomUUID().toString().replace("-", "");
-            User user = new User(
-                    postWriteDTO.getUserId(),
-                    "password", "phoneNum", "name", "email",
-                    null, true, null,
-                    null, null, true
-            );
-
-            String filename = null;
-            if(!file.isEmpty()){
-                filename = postNum + "_" + file.getOriginalFilename() ;
-                Path targetPath = Paths.get(postDir).resolve(filename);
-                try {
-                    Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    throw new RuntimeException("게시글 파일 저장 실패", e);
-                }
-            }
-
-            Post post = new Post(
-                    postNum,
-                    postWriteDTO.getTitle(),
-                    postWriteDTO.getContent(),
-                    postWriteDTO.getType(),
-                    filename,
-                    0,
-                    postWriteDTO.getFixation(),
-                    postWriteDTO.getDate(),
-                    null,  // ClubPost는 아래에서 설정
-                    null,   // Poster도 아직 없음
-                    user
-            );
-
-            switch (type){
-                case GENERAL -> {
-                    Club club = new Club(
-                            postWriteDTO.getClubId(),
-                            "clubName", null, null, "category",
-                            null, null, null, null
-                    );
-                    // ClubPost 객체 생성 및 연결
-                    ClubPost clubPost = new ClubPost();
-                    clubPost.setPostNum(postNum); // ID 설정
-                    clubPost.setPost(post); // 연관관계 설정
-                    clubPost.setClub(club);
-
-                    post.setClubPost(clubPost);
-                }
-                case POSTER -> {
-                    Poster poster = new Poster();
-                    poster.setPostNum(postNum); // ID 설정
-                    poster.setImg(Objects.requireNonNull(filename).toString());
-                    poster.setPost(post); // 연관관계 설정
-
-                    post.setPoster(poster);
-                }
-            }
-
-            postRepository.save(post);
-            return true;
+            return postRepository.existsById(postNum);
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
     }
 
-    // 게시글 찾기
-    public boolean findPost(String postNum) throws Exception {
-        try {
-            if (postRepository.existsById(postNum)) {
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            throw new Exception();
-        }
-    }
-
-    // 게시글 삭제
     public boolean deletePost(String postNum) throws Exception {
         try {
             if (postRepository.existsById(postNum)) {
                 postRepository.deleteById(postNum);
                 return true;
-            }
-            else{
+            } else {
                 return false;
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
     }
 
-    // 게시글 가져오기
     public PostDto getPost(String postNum) throws Exception {
         try {
             Post post = postRepository.findById(postNum)
@@ -148,33 +71,103 @@ public class PostService {
                     post.getFixaction(),
                     post.getDate()
             );
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
     }
 
-    // 동아리 전체 게시글 가져오기
     @Transactional
     public List<PostDto> getClubPostList(String clubId) throws Exception {
-        try{
+        try {
             Club club = clubRepository.findById(clubId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 clubId의 동아리를 찾을 수 없습니다."));
 
-            List<ClubPost> clubPostList = club.getClubPosts(); // 연결된 모든 게시글
+            List<ClubPost> clubPostList = club.getClubPosts();
             List<PostDto> postDtoList = new ArrayList<>();
 
             for (ClubPost clubPost : clubPostList) {
                 postDtoList.add(getPost(clubPost.getPostNum()));
             }
             return postDtoList;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
     }
 
+    public String savePost(PostWriteDTO dto, MultipartFile file) {
+        try {
+            String postNum = UUID.randomUUID().toString().replace("-", "");
 
+            String filename = null;
+            if (file != null && !file.isEmpty()) {
+                filename = postNum + "_" + file.getOriginalFilename();
+                Path targetPath = Paths.get(postDir).resolve(filename);
+                try {
+                    Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new RuntimeException("게시글 파일 저장 실패", e);
+                }
+            }
+
+            User user = new User();
+            user.setUserId(dto.getUserId());
+
+            Post post = new Post(
+                    postNum,
+                    dto.getTitle(),
+                    dto.getContent(),
+                    dto.getType(),
+                    filename,
+                    0,
+                    dto.getFixation(),
+                    dto.getDate(),
+                    null,
+                    null,
+                    user
+            );
+
+            postRepository.save(post);
+            postRepository.flush();
+            return postNum;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("게시글 저장 실패", e);
+        }
+    }
+
+    public void createClubPost(String postNum, String clubId) {
+        try {
+            Club club = clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 clubId의 동아리를 찾을 수 없습니다."));
+
+            Post post = postRepository.findById(postNum)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 postNum의 게시글을 찾을 수 없습니다."));
+
+            ClubPost clubPost = new ClubPost();
+            clubPost.setPost(post);           // ✅ 필수
+            clubPost.setClub(club);           // ✅ 연관관계
+
+            clubPostRepository.save(clubPost);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("동아리 게시글 생성 실패", e);
+        }
+    }
+
+    public void createPoster(String postNum) {
+        try {
+            Post post = postRepository.findById(postNum)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 postNum의 게시글을 찾을 수 없습니다."));
+            Poster poster = new Poster();
+            poster.setPost(post);
+            poster.setImg(post.getFile());
+            posterRepository.save(poster);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("포스터 생성 실패", e);
+        }
+    }
 }
+
