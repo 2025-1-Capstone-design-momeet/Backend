@@ -10,17 +10,22 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/minute")
 public class MinuteController {
+
     @Value("${file.temp-dir}")
     private String tempDir;
+
     @Value("${file.upload-dir}")
     private String uploadDir;
+
     @Value("${ai.api.url}")
     private String aiServerUrl;
+
     @Value("${ai.api.host}")
     private String aiServerHost;
 
@@ -34,8 +39,11 @@ public class MinuteController {
             @RequestParam("num_speakers") int numSpeakers
     ) {
         try {
-            ResponseEntity<String> aiResponse = minuteService.createMinute(file, clubId, numSpeakers);
-            return ResponseEntity.ok(new Response<>("true", "회의 생성 완료", aiResponse));
+            // ✅ 더 이상 AI 응답을 기다리지 않음
+            String minuteId = minuteService.createMinute(file, clubId, numSpeakers);
+            return ResponseEntity.ok(
+                    new Response<>("true", "회의 생성 요청 완료", Map.of("minuteId", minuteId))
+            );
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -104,5 +112,4 @@ public class MinuteController {
                     .body("AI 서버 연결 실패: " + e.getMessage());
         }
     }
-
 }
