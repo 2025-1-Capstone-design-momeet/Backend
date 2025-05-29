@@ -5,19 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostWriteDTO {
+public class VoteWriteDto {
     private String clubId;
-    private String userId;
-
+    private LocalDateTime endDate;
     private String title;
     private String content;
+    private boolean anonymous;
 
-    private int type;             // DB에 저장된 정수형 타입
-
-    private int like;
-    private int fixation;
-    private LocalDateTime date;
+    private List<VoteContentWriteDto> voteContets;
 }

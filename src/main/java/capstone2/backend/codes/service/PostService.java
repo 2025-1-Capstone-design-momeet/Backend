@@ -1,13 +1,19 @@
 package capstone2.backend.codes.service;
 
+import capstone2.backend.codes.dto.PostDeleteDto;
 import capstone2.backend.codes.dto.PostDto;
-import capstone2.backend.codes.dto.PostWriteDTO;
+import capstone2.backend.codes.dto.PostWriteDto;
+import capstone2.backend.codes.dto.PostWriteDto;
 import capstone2.backend.codes.entity.*;
 import capstone2.backend.codes.enums.PostType;
 import capstone2.backend.codes.repository.ClubPostRepository;
 import capstone2.backend.codes.repository.ClubRepository;
 import capstone2.backend.codes.repository.PostRepository;
+
+import capstone2.backend.codes.repository.UserRepository;
+
 import capstone2.backend.codes.repository.PosterRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,9 +36,83 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final ClubRepository clubRepository;
+    private final UserRepository userRepository;
     private final ClubPostRepository clubPostRepository;
     private final PosterRepository posterRepository;
 
+    // 게시글 작성
+    public boolean writePost(PostWriteDto postWriteDto, MultipartFile file) throws Exception {
+        try {
+            PostType type = PostType.fromCode(postWriteDto.getType());
+            String postNum = UUID.randomUUID().toString().replace("-", "");
+            User user = new User(
+                    postWriteDto.getUserId(),
+                    "password", "phoneNum", "name", "email",
+                    null, true, null,
+                    null, null, true
+            );
+
+            String filename = null;
+            if(!file.isEmpty()){
+                filename = postNum + "_" + file.getOriginalFilename() ;
+                Path targetPath = Paths.get(postDir).resolve(filename);
+                try {
+                    Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new RuntimeException("게시글 파일 저장 실패", e);
+                }
+            }
+
+            Post post = new Post(
+                    postNum,
+                    postWriteDto.getTitle(),
+                    postWriteDto.getContent(),
+                    postWriteDto.getType(),
+                    filename,
+                    0,
+                    postWriteDto.getFixation(),
+                    postWriteDto.getDate(),
+                    null,  // ClubPost는 아래에서 설정
+                    null,   // Poster도 아직 없음
+                    user
+            );
+
+            switch (type){
+                case GENERAL -> {
+                    Club club = new Club(
+                            postWriteDto.getClubId(),
+                            "clubName", null, null, "category",
+                            null, null, null, null,null
+                    );
+                    // ClubPost 객체 생성 및 연결
+                    ClubPost clubPost = new ClubPost();
+                    clubPost.setPostNum(postNum); // ID 설정
+                    clubPost.setPost(post); // 연관관계 설정
+                    clubPost.setClub(club);
+
+                    post.setClubPost(clubPost);
+                }
+                case POSTER -> {
+                    Poster poster = new Poster();
+                    poster.setPostNum(postNum); // ID 설정
+                    poster.setImg(Objects.requireNonNull(filename).toString());
+                    poster.setPost(post); // 연관관계 설정
+
+                    post.setPoster(poster);
+                }
+            }
+
+            postRepository.save(post);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    
+
+    // 게시글 찾기
     public boolean findPost(String postNum) throws Exception {
         try {
             return postRepository.existsById(postNum);
@@ -42,10 +122,17 @@ public class PostService {
         }
     }
 
-    public boolean deletePost(String postNum) throws Exception {
+
+    public boolean deletePost(PostDeleteDto postDeleteDto) throws Exception {
+
         try {
-            if (postRepository.existsById(postNum)) {
-                postRepository.deleteById(postNum);
+            Post post = postRepository.findById(postDeleteDto.getPostNum())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 postNum의 게시글을 찾을 수 없습니다."));
+            User user = userRepository.findById(postDeleteDto.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 게시글을 찾을 수 없습니다."));
+
+            if (Objects.equals(post.getUser().getUserId(), user.getUserId())) {
+                postRepository.deleteById(post.getPostNum());
                 return true;
             } else {
                 return false;
@@ -67,6 +154,7 @@ public class PostService {
                     post.getContent(),
                     post.getType(),
                     PostType.fromCode(post.getType()).getLabel(),
+                    post.getFile(),
                     post.getLike(),
                     post.getFixaction(),
                     post.getDate()

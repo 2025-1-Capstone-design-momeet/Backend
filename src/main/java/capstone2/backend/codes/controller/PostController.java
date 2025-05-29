@@ -1,10 +1,7 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
-import capstone2.backend.codes.dto.ClubIdRequestDto;
-import capstone2.backend.codes.dto.PostDto;
-import capstone2.backend.codes.dto.PostNumRequestDto;
-import capstone2.backend.codes.dto.PostWriteDTO;
+import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.enums.PostType;
 import capstone2.backend.codes.service.ClubService;
 import capstone2.backend.codes.service.PostService;
@@ -46,9 +43,9 @@ public class PostController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<Response<?>> deletePost(@RequestBody PostNumRequestDto postNumDto) {
+    public ResponseEntity<Response<?>> deletePost(@RequestBody PostDeleteDto postDeleteDto) {
         try {
-            if (!postService.deletePost(postNumDto.getPostNum())) {
+            if (!postService.deletePost(postDeleteDto)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(new Response<>("false", "게시글 삭제에 실패했습니다.", null));
             } else {
