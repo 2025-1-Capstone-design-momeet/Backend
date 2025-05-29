@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClubPost {
     @Id
-    @Column(name = "postNum")
+    @Column(name = "postNum", nullable = false)
     private String postNum;
 
     @MapsId  // ✅ Post의 postNum을 ID로 사용

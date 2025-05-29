@@ -18,28 +18,27 @@ import java.util.List;
 @RequestMapping("/api/post")
 public class PostController {
     private final PostService postService;
-    private final ClubService clubService;
 
     @PostMapping("/write")
     public ResponseEntity<Response<?>> writePost(
-            @RequestPart(value = "file", required = false) MultipartFile file,
-            @RequestPart(value = "postWriteDTO") PostWriteDto postWriteDTO) {
-
+            @RequestPart("postWriteDTO") PostWriteDTO dto,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            PostType type = PostType.fromCode(postWriteDTO.getType());
-
-            if (!postService.writePost(postWriteDTO,file)) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new Response<>("false", "게시글 작성에 실패했습니다.", null));
+            String postNum = postService.savePost(dto, file);
+            if (PostType.fromCode(dto.getType()) == PostType.GENERAL) {
+                postService.createClubPost(postNum, dto.getClubId());
             }
-            else {
-                return ResponseEntity.ok(
-                        new Response<>("true", String.format("%s 게시글 작성 성공", type.getLabel()), null)
-                );
+            else if (PostType.fromCode(dto.getType()) == PostType.POSTER) {
+                postService.createPoster(postNum);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new Response<>("false", "잘못된 게시글 유형입니다.", null));
             }
+            return ResponseEntity.ok(new Response<>("true", "게시글 작성 성공", null));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new Response<>("false", "게시글 작성에 실패했습니다.", null));
+                    .body(new Response<>("false", "게시글 작성 실패", null));
         }
     }
 

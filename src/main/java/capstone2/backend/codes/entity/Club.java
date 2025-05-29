@@ -36,6 +36,9 @@ public class Club {
     @Column(name = "univName")
     private String univName;
 
+    @Column(name = "isOfficial", nullable = false)
+    private boolean isOfficial; // 공식 동아리 여부 (1: 공식, 0: 비공식)
+
     // Club ↔ ClubPost 역방향 관계 추가
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClubPost> clubPosts;

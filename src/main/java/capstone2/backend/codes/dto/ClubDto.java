@@ -12,7 +12,8 @@ public class ClubDto {
     private String clubName;
     private String profileImage;
     private String managerId;
-    private int category;
+    private String category;
     private String bannerImage;
     private String univName;
+    private boolean isOfficial; // 공식 동아리 여부 (1: 공식, 0: 비공식)
 }

@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserIdDto {
+public class WaitingListDto {
     private String userId;
+    private String clubId;
+    private String why;
+    private String what;
 }
