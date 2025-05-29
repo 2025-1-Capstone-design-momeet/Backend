@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ClubPost {
-
     @Id
     @Column(name = "postNum")
     private String postNum;

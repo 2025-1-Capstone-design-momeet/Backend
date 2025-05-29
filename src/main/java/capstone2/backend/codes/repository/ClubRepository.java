@@ -14,6 +14,5 @@ public interface ClubRepository extends JpaRepository<Club, String> {
         WHERE c.univName LIKE :univName
     """)
     List<Club> findAllByUnivName(@Param("univName") String univName);
-
-
+    boolean existsByClubNameAndUnivName(String clubName, String univName);
 }
