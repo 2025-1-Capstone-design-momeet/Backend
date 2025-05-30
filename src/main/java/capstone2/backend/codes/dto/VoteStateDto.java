@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class VoteStateDto {
     private String userId;
     private String voteID;
+    private String voteContentId;
     private int voteNum;
 }

@@ -22,8 +22,15 @@ public class VoteState {
     @Column(name = "voteID", nullable = false)
     private String voteID;
 
+    @Id
+    @Column(name = "voteContentId", nullable = false, insertable = false, updatable = false)
+    private String voteContentId;
+
+
     @Column(name = "voteNum", nullable = false)
     private int voteNum;
+
+
 
     // 연관 매핑: userId → User
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,4 +41,9 @@ public class VoteState {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voteID", insertable = false, updatable = false)
     private Vote vote;
+
+    // 연관 매핑: payID → PaymentHistory
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voteContentID", insertable = false, updatable = false)
+    private VoteContent voteContent;
 }

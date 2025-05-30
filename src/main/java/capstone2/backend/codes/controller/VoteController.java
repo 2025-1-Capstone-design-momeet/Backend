@@ -91,6 +91,18 @@ public class VoteController {
         }
     }
 
+    @PostMapping("/voteStateMembers")
+    public ResponseEntity<Response<?>> voteStateMembers(@RequestBody VoteStateDto voteStateDto) {
+        try {
+            List<UserDto> voteStateMembers = voteService.voteStateMembers(voteStateDto);
+            return ResponseEntity.ok(new Response<>("true", "투표 멤버 현황 가져오기 성공", voteStateMembers));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "투표 멤버 현황 가져오기에 실패했습니다.", null));
+        }
+    }
+
 
 
 }

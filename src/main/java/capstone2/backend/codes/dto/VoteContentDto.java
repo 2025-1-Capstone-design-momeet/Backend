@@ -11,4 +11,5 @@ public class VoteContentDto {
     private String voteID;
     private String field;
     private int voteNum;
+    private int voteContentNum;
 }

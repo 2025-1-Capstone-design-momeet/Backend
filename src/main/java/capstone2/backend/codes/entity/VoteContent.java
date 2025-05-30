@@ -11,8 +11,8 @@ import lombok.*;
 public class VoteContent {
 
     @Id
-    @Column(name = "voteContentID", nullable = false)
-    private String voteContentID;
+    @Column(name = "voteContentId", nullable = false)
+    private String voteContentId;
 
     @Column(name = "voteID", nullable = false)
     private String voteID;
