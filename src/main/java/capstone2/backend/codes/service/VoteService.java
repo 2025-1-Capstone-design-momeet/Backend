@@ -27,7 +27,7 @@ public class VoteService {
     // 투표 작성하기
     public Boolean writeVote(VoteWriteDto voteWriteDto) throws Exception {
         try {
-            if(clubService.canManageClub(voteWriteDto.getUserId(),voteWriteDto.getClubId())){
+            if(!clubService.canManageClub(voteWriteDto.getUserId(),voteWriteDto.getClubId())){
                 return false;
             }
             String voteID = UUID.randomUUID().toString().replace("-", "");
