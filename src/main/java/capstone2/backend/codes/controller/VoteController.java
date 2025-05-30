@@ -23,7 +23,7 @@ public class VoteController {
         try {
             if (!voteService.writeVote(voteWriteDTO)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new Response<>("false", "투표 작성에 실패했습니다.", null));
+                        .body(new Response<>("false", "관리자가 아니여서 투표 작성에 실패했습니다.", null));
             }
             else {
                 return ResponseEntity.ok(

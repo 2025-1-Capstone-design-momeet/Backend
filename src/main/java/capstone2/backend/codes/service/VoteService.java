@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VoteService {
+    private final ClubService clubService;
     private final VoteRepository voteRepository;
     private final VoteContentRepository voteContentRepository;
     private final VoteStateRepository voteStateRepository;
@@ -26,6 +27,9 @@ public class VoteService {
     // 투표 작성하기
     public Boolean writeVote(VoteWriteDto voteWriteDto) throws Exception {
         try {
+            if(clubService.canManageClub(voteWriteDto.getUserId(),voteWriteDto.getClubId())){
+                return false;
+            }
             String voteID = UUID.randomUUID().toString().replace("-", "");
 
             Club club = clubRepository.findById(voteWriteDto.getClubId()).orElse(null);
@@ -155,7 +159,7 @@ public class VoteService {
         }
     }
 
-    // 투표 현황
+    // 해당 유저의 투표 현황
     public VoteStateDto voteState (VoteStateDto voteStateDto) throws Exception {
         try {
             voteRepository.findById(voteStateDto.getVoteID())
