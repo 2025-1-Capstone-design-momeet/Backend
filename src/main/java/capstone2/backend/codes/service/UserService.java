@@ -213,9 +213,9 @@ public class UserService {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 return new UserMainDto(user,
-                        clubMembersRepository.findClubsByUserId(userId),
+                        clubMembersRepository.findClubSummariesByUserId(userId),
                         posterRepository.findAllByUnivName(user.getUnivName()),
-                        clubPromotionRepository.findAllByUnivName(user.getUnivName())
+                        clubPromotionRepository.findRecruitingClubsByUnivName(user.getUnivName())
                 );
             }
             return null;

@@ -23,11 +23,11 @@ public class UserMainDto {
     private String studentNum;
     private String grade;
     private boolean gender;
-    private List<Club> myClubs;
+    private List<ClubSummaryDto> myClubs;
     private List<Poster> posters;
-    private List<ClubPromotion> clubPromotions;
+    private List<ClubRecruitmentDto> clubPromotions;
 
-    public UserMainDto(User u, List<Club> mc, List<Poster> p, List<ClubPromotion> cp) {
+    public UserMainDto(User u, List<ClubSummaryDto> mc, List<Poster> p, List<ClubRecruitmentDto> cp) {
         this.userId = u.getUserId();
         this.name = u.getName();
         this.univName = u.getUnivName();
