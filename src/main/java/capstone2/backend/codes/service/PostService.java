@@ -147,7 +147,7 @@ public class PostService {
         }
     }
 
-    // 동아리 게시물 추가
+    // 동아리 게시물 추가s
     public void createClubPost(String postNum, String clubId) {
         try {
             Club club = clubRepository.findById(clubId)
