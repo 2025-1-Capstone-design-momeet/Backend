@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final VoteRepository voteRepository;
     private final VoteContentRepository voteContentRepository;
-    private final VoteStateRepository voteStateRepository;
     private final UserRepository userRepository;
     private final ClubRepository clubRepository;
     private final PaymentHistoryRepository paymentHistoryRepository;
@@ -39,8 +38,36 @@ public class PaymentService {
                     .orElseThrow(() -> new IllegalArgumentException("해당 voteContentId의 투표 번호를 찾을 수 없습니다."));
 
             return new PaymentMembersDto(
-                    voteContentRepository.findUsersByVoteContentAndContentId(vote.getVoteID(),voteStateDto.getVoteContentId()),
-                    voteContentRepository.findUsersNotSelectedVoteContent(club.getClubId(),voteStateDto.getVoteContentId())
+                    voteContentRepository.findUsersByVoteContentAndContentId(vote.getVoteID(),voteStateDto.getVoteContentId()).stream()
+                            .map(user -> new UserDto(
+                                    user.getUserId(),
+                                    user.getPw(),
+                                    user.getPhoneNum(),
+                                    user.getName(),
+                                    user.getEmail(),
+                                    user.getUnivName(),
+                                    user.isSchoolCertification(),
+                                    user.getDepartment(),
+                                    user.getStudentNum(),
+                                    user.getGrade(),
+                                    user.isGender()
+                            ))
+                            .collect(Collectors.toList()),
+                    voteContentRepository.findUsersNotSelectedVoteContent(club.getClubId(),voteStateDto.getVoteContentId()).stream()
+                            .map(user -> new UserDto(
+                                    user.getUserId(),
+                                    user.getPw(),
+                                    user.getPhoneNum(),
+                                    user.getName(),
+                                    user.getEmail(),
+                                    user.getUnivName(),
+                                    user.isSchoolCertification(),
+                                    user.getDepartment(),
+                                    user.getStudentNum(),
+                                    user.getGrade(),
+                                    user.isGender()
+                            ))
+                            .collect(Collectors.toList())
             );
         }
         catch (Exception e){
@@ -213,7 +240,8 @@ public class PaymentService {
                         p.getClubId(),
                         p.getTitle(),
                         p.getAmount(),
-                        p.getAccount()
+                        p.getAccount(),
+                        false
                 ))
                 .collect(Collectors.toList());
     }

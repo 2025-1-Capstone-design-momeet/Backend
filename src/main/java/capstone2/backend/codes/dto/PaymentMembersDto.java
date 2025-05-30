@@ -10,8 +10,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class PaymentMembersDto {
-    private List<User> checkMembers;
-    private List<User> unCheckMembers;
+    private List<UserDto> checkMembers;
+    private List<UserDto> unCheckMembers;
 }

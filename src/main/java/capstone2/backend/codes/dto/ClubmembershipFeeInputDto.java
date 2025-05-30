@@ -7,12 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class PaymentHistoryDto {
-    private String payId;
+public class ClubmembershipFeeInputDto {
+    private String userId;
     private String clubId;
-    private String title;
-    private int amount;
-    private String account;
-    private boolean isComplete;
 }
