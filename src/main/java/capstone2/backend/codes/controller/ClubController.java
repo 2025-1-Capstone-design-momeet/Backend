@@ -81,4 +81,21 @@ public class ClubController {
                     "false", "동아리 신청 승인 중 오류 발생", null));
         }
     }
+
+    @PostMapping("/delegate")
+    public ResponseEntity<Response<?>> delegateClub(@RequestBody ClubDelegateDto clubDelegateDto) {
+        try {
+            ClubDelegateDto resultDto = clubService.delegatePresident(clubDelegateDto);
+            if (resultDto != null) {
+                return ResponseEntity.ok(new Response<>(
+                        "true", "동아리 위임 성공", resultDto));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
+                        "false", "동아리 위임 실패: 해당 동아리가 존재하지 않거나 권한이 없습니다.", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false","동아리 위임 중 오류 발생", null));
+        }
+    }
 }
