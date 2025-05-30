@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +30,7 @@ public class VoteService {
             Club club = new Club(
                     voteWriteDto.getClubId(),"clubName",
                     null, null,"category",
-                    null, null,null,null, null
+                    null, null,false,null, null,null
 
             );
 
@@ -70,22 +71,21 @@ public class VoteService {
     public GetVoteDto getVote(String voteID) throws Exception {
         try {
             Vote vote = voteRepository.findById(voteID)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 게시글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
 
             // 투표 종료 현황
             boolean isEnd = vote.getEndDate() != null && LocalDateTime.now().isAfter(vote.getEndDate());
 
             // 투표 내용들..
-            List<VoteContentDto> voteContentDtos = new ArrayList<>();
-            for(VoteContent voteContent: vote.getVoteContents()){
-                VoteContentDto voteContentDto = new VoteContentDto(
-                        voteContent.getVoteContentID(),
-                        voteContent.getVoteID(),
-                        voteContent.getField(),
-                        voteContent.getVoteNum()
-                );
-                voteContentDtos.add(voteContentDto);
-            }
+            List<Object[]> results = voteContentRepository.findVoteContentWithCount(voteID);
+
+            List<VoteContentDto> voteContentDtos = results.stream().map(record -> new VoteContentDto(
+                    (String) record[0],
+                    (String) record[1],
+                    (String) record[2],
+                    ((Number) record[3]).intValue(),
+                    ((Number) record[4]).intValue()
+            )).collect(Collectors.toList());
 
             return new GetVoteDto(
                     vote.getVoteID(),
@@ -131,16 +131,19 @@ public class VoteService {
     public boolean vote (VoteStateDto voteStateDto) throws Exception {
         try {
             Vote vote = voteRepository.findById(voteStateDto.getVoteID())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 게시글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
             User user = userRepository.findById(voteStateDto.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 게시글을 찾을 수 없습니다."));
-
+                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
+            VoteContent voteContent = voteContentRepository.findById(voteStateDto.getVoteContentId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteContentID의 투표번호를 찾을 수 없습니다."));
             VoteState voteState = new VoteState(
                     voteStateDto.getUserId(),
                     voteStateDto.getVoteID(),
+                    voteContent.getVoteContentId(),
                     voteStateDto.getVoteNum(),
                     user,
-                    vote
+                    vote,
+                    voteContent
             );
             voteStateRepository.save(voteState);
             return true;
@@ -155,9 +158,9 @@ public class VoteService {
     public VoteStateDto voteState (VoteStateDto voteStateDto) throws Exception {
         try {
             voteRepository.findById(voteStateDto.getVoteID())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 게시글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
             userRepository.findById(voteStateDto.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 게시글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
 
             // 이미 투표했는지 확인
             VoteState voteState = voteStateRepository.findByUserIdAndVoteID(
@@ -172,10 +175,42 @@ public class VoteService {
             return new VoteStateDto(
                     voteState.getUserId(),
                     voteState.getVoteID(),
+                    voteState.getVoteContentId(),
                     voteState.getVoteNum()
             );
         }
         catch (Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // 투표 멤버 현황
+    public List<UserDto> voteStateMembers(VoteStateDto voteStateDto) throws Exception {
+        try {
+            voteRepository.findById(voteStateDto.getVoteID())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
+
+            List<User> users = voteContentRepository.findUsersByVoteContentAndContentId(voteStateDto.getVoteID(),voteStateDto.getVoteContentId());
+
+            // User → UserDto 변환
+            return users.stream()
+                    .map(u -> new UserDto(
+                            u.getUserId(),
+                            u.getPw(),
+                            u.getPhoneNum(),
+                            u.getName(),
+                            u.getEmail(),
+                            u.getUnivName(),
+                            u.isSchoolCertification(),
+                            u.getDepartment(),
+                            u.getStudentNum(),
+                            u.getGrade(),
+                            u.isGender()
+                    ))
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
