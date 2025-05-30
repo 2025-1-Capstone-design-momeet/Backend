@@ -22,9 +22,9 @@ public class ClubService {
     private final UserRepository userRepository;
 
     // 내 클럽 조회
-    public List<Club> getClubsByUserId(String userId) throws Exception {
+    public List<ClubSummaryDto> getClubsByUserId(String userId) throws Exception {
         try {
-            return clubMembersRepository.findClubsByUserId(userId);
+            return clubMembersRepository.findClubSummariesByUserId(userId);
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
