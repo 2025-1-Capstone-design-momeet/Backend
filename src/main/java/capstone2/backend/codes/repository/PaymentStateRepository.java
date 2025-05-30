@@ -38,10 +38,10 @@ public interface PaymentStateRepository extends JpaRepository<PaymentState, Stri
     @Query("""
     SELECT ph FROM PaymentHistory ph
     WHERE ph.clubId = :clubId
-      AND NOT EXISTS (
+      AND EXISTS (
           SELECT ps FROM PaymentState ps
           WHERE ps.payId = ph.payId
-            AND ps.hasPaid = true
+            AND ps.hasPaid = false 
       )
     """)
     List<PaymentHistory> findUnpaidByAllMembersInClub(@Param("clubId") String clubId);
