@@ -51,22 +51,42 @@ public class MinuteService {
             extension = originalFilename.substring(dotIndex).toLowerCase();
         }
 
-        if (!".wav".equals(extension)) {
-            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. .wav 파일만 허용됩니다.");
-        }
+        Path convertedPath = Paths.get(tempDir).resolve(minuteId + ".wav");
 
-        String fileName = minuteId + extension;
-        Path targetPath = Paths.get(tempDir).resolve(fileName);
         try {
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("파일 저장 성공: " + targetPath.toString());
-        } catch (IOException e) {
-            throw new RuntimeException("파일 저장 실패", e);
+            if (!".wav".equals(extension)) {
+                // ✅ 원본 파일 먼저 저장
+                Path tempInputPath = Paths.get(tempDir).resolve(minuteId + extension);
+                Files.copy(file.getInputStream(), tempInputPath, StandardCopyOption.REPLACE_EXISTING);
+
+                // ✅ FFmpeg 실행 (aac/mp3/m4a 등을 wav로 변환)
+                ProcessBuilder pb = new ProcessBuilder(
+                        "ffmpeg", "-y",
+                        "-i", tempInputPath.toString(),
+                        "-ar", "16000",             // 샘플링 레이트(예: Whisper는 16kHz 사용)
+                        "-ac", "1",                 // 채널 수 (모노)
+                        "-acodec", "pcm_s16le",     // WAV 표준 코덱
+                        convertedPath.toString()
+                );
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                int exitCode = process.waitFor();
+                if (exitCode != 0) throw new RuntimeException("FFmpeg 변환 실패 (exitCode=" + exitCode + ")");
+                System.out.println("FFmpeg 변환 완료: " + convertedPath);
+            } else {
+                // 이미 .wav인 경우 그냥 저장
+                Files.copy(file.getInputStream(), convertedPath, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("WAV 파일 저장 완료: " + convertedPath);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("파일 저장 또는 변환 실패", e);
         }
 
+        // ✅ 오디오 길이 계산
         long durationSeconds = 0L;
         try {
-            File savedFile = targetPath.toFile();
+            File savedFile = convertedPath.toFile();
             AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(savedFile);
             long frameLength = fileFormat.getFrameLength();
             float frameRate = fileFormat.getFormat().getFrameRate();
@@ -82,9 +102,8 @@ public class MinuteService {
         );
         minuteRepository.save(minute);
 
-        // ✅ 진짜 비동기 호출
-        aiClientService.sendToAIServerAsync(targetPath.toFile(), minuteId, numSpeakers);
-
+        // ✅ 비동기 전송
+        aiClientService.sendToAIServerAsync(convertedPath.toFile(), minuteId, numSpeakers);
         return minuteId;
     }
 
