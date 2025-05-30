@@ -40,78 +40,6 @@ public class PostService {
     private final ClubPostRepository clubPostRepository;
     private final PosterRepository posterRepository;
 
-    // 게시글 작성
-    public boolean writePost(PostWriteDto postWriteDto, MultipartFile file) throws Exception {
-        try {
-            PostType type = PostType.fromCode(postWriteDto.getType());
-            String postNum = UUID.randomUUID().toString().replace("-", "");
-            User user = new User(
-                    postWriteDto.getUserId(),
-                    "password", "phoneNum", "name", "email",
-                    null, true, null,
-                    null, null, true
-            );
-
-            String filename = null;
-            if(!file.isEmpty()){
-                filename = postNum + "_" + file.getOriginalFilename() ;
-                Path targetPath = Paths.get(postDir).resolve(filename);
-                try {
-                    Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    throw new RuntimeException("게시글 파일 저장 실패", e);
-                }
-            }
-
-            Post post = new Post(
-                    postNum,
-                    postWriteDto.getTitle(),
-                    postWriteDto.getContent(),
-                    postWriteDto.getType(),
-                    filename,
-                    0,
-                    postWriteDto.getFixation(),
-                    postWriteDto.getDate(),
-                    null,  // ClubPost는 아래에서 설정
-                    null,   // Poster도 아직 없음
-                    user
-            );
-
-            switch (type){
-                case GENERAL -> {
-                    Club club = new Club(
-                            postWriteDto.getClubId(),
-                            "clubName", null, null, "category",
-                            null, null, null, null,null
-                    );
-                    // ClubPost 객체 생성 및 연결
-                    ClubPost clubPost = new ClubPost();
-                    clubPost.setPostNum(postNum); // ID 설정
-                    clubPost.setPost(post); // 연관관계 설정
-                    clubPost.setClub(club);
-
-                    post.setClubPost(clubPost);
-                }
-                case POSTER -> {
-                    Poster poster = new Poster();
-                    poster.setPostNum(postNum); // ID 설정
-                    poster.setImg(Objects.requireNonNull(filename).toString());
-                    poster.setPost(post); // 연관관계 설정
-
-                    post.setPoster(poster);
-                }
-            }
-
-            postRepository.save(post);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception();
-        }
-    }
-
-    
-
     // 게시글 찾기
     public boolean findPost(String postNum) throws Exception {
         try {
@@ -121,7 +49,6 @@ public class PostService {
             throw new Exception();
         }
     }
-
 
     public boolean deletePost(PostDeleteDto postDeleteDto) throws Exception {
 
@@ -184,7 +111,7 @@ public class PostService {
         }
     }
 
-    public String savePost(PostWriteDTO dto, MultipartFile file) {
+    public String savePost(PostWriteDto dto, MultipartFile file) {
         try {
             String postNum = UUID.randomUUID().toString().replace("-", "");
 

@@ -21,7 +21,7 @@ public class PostController {
 
     @PostMapping("/write")
     public ResponseEntity<Response<?>> writePost(
-            @RequestPart("postWriteDTO") PostWriteDTO dto,
+            @RequestPart("postWriteDTO") PostWriteDto dto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
             String postNum = postService.savePost(dto, file);

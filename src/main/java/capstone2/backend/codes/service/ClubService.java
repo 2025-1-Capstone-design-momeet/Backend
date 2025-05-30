@@ -135,20 +135,33 @@ public class ClubService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
 
+        // TODO: 여기 president, executive 엔티티, 여기 인원 합산 기능 만들고 club create할 때 managerId를 회장에 추가해야함
+
+        // ✅ 인원 수 계산: 회장 + 임원 + 멤버
+        //int presidentCount = presidentRepository.countByClubId(clubId);
+        //int executiveCount = executiveRepository.countByClubId(clubId);
         int memberCount = clubMembersRepository.countByClubId(clubId);
+        //int totalCount = presidentCount + executiveCount + memberCount;
+        int totalCount = memberCount; // 현재는 회장과 임원 수를 고려하지 않음
+
         String welcomeMessage = "안녕하세요, " + club.getClubName() + " 입니다!";
         String bannerImage = club.getBannerImage();
 
-        // ✅ upcoming 일정 가져오기
+        // ✅ 가장 가까운 일정 가져오기
         UpcomingScheduleDto upcoming = calendarService.getUpcomingSchedule(clubId).orElse(null);
 
-        // ✅ 최근 게시글 3개 (fixaction → 최신순)
+        // ✅ 최근 게시글 3개 가져오기 (fixaction 우선 → 최신순)
         List<RecentPostDto> recentPosts = clubPostRepository
                 .findTop3ByClub_ClubIdOrderByPost_FixactionDescPost_DateDesc(clubId)
                 .stream()
                 .map(cp -> {
                     Post post = cp.getPost();
-                    return new RecentPostDto(post.getPostNum(), post.getTitle(), post.getLike(), post.getDate());
+                    return new RecentPostDto(
+                            post.getPostNum(),
+                            post.getTitle(),
+                            post.getLike(),
+                            post.getDate()
+                    );
                 })
                 .toList();
 
@@ -157,7 +170,7 @@ public class ClubService {
                 club.getUnivName(),
                 club.getCategory(),
                 club.isOfficial(),
-                memberCount,
+                totalCount,  // ✅ 총 인원 수 반영
                 bannerImage,
                 welcomeMessage,
                 upcoming != null ? List.of(upcoming) : List.of(),

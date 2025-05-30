@@ -26,12 +26,7 @@ public class VoteService {
     public Boolean writeVote(VoteWriteDto voteWriteDto) throws Exception {
         try {
             String voteID = UUID.randomUUID().toString().replace("-", "");
-            Club club = new Club(
-                    voteWriteDto.getClubId(),"clubName",
-                    null, null,"category",
-                    null, null,null,null, null
-
-            );
+            Club club = clubRepository.findById(voteWriteDto.getClubId()).orElse(null);
 
             Vote vote = new Vote(
                     voteID,
@@ -45,7 +40,7 @@ public class VoteService {
                     new ArrayList<>()
             );
 
-            for (VoteContentWriteDto voteContentWriteDto : voteWriteDto.getVoteContets()){
+            for (VoteContentWriteDto voteContentWriteDto : voteWriteDto.getVoteContents()){
                 String voteContentID = UUID.randomUUID().toString().replace("-", "");
                 VoteContent voteContent = new VoteContent(
                         voteContentID,
