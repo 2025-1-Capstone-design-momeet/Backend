@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClubMembersRepository extends JpaRepository<ClubMembers, ClubMembersId> {
 
@@ -19,4 +20,6 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers, ClubMe
     """)
     List<Club> findClubsByUserId(@Param("userId") String userId);
     int countByClubId(String clubId);
+
+    List<ClubMembers> findByClubId(String clubId);
 }

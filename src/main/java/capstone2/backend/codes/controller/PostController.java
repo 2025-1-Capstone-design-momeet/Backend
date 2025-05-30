@@ -24,17 +24,17 @@ public class PostController {
             @RequestPart("postWriteDTO") PostWriteDto dto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            String postNum = postService.savePost(dto, file);
+            PostNumDto postNumDto = postService.savePost(dto, file);
             if (PostType.fromCode(dto.getType()) == PostType.GENERAL) {
-                postService.createClubPost(postNum, dto.getClubId());
+                postService.createClubPost(postNumDto.getPostNum(), dto.getClubId());
             }
             else if (PostType.fromCode(dto.getType()) == PostType.POSTER) {
-                postService.createPoster(postNum);
+                postService.createPoster(postNumDto.getPostNum());
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new Response<>("false", "잘못된 게시글 유형입니다.", null));
             }
-            return ResponseEntity.ok(new Response<>("true", "게시글 작성 성공", null));
+            return ResponseEntity.ok(new Response<>("true", "게시글 작성 성공", postNumDto));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

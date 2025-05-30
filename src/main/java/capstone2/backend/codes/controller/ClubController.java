@@ -2,6 +2,7 @@ package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.*;
+import capstone2.backend.codes.entity.Club;
 import capstone2.backend.codes.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,10 +34,10 @@ public class ClubController {
     @PostMapping("/create")
     public ResponseEntity<Response<?>> createClub(@RequestBody ClubDto clubDto) {
         try {
-            boolean result = clubService.addClub(clubDto);
-            if (result) {
+            Club club = clubService.addClub(clubDto);
+            if (club != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(new Response<>(
-                        "true", "동아리 생성 성공", null));
+                        "true", "동아리 생성 성공", club));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
                         "false", "동아리 생성 실패: 이미 존재하는 동아리입니다.", null));
@@ -50,10 +51,10 @@ public class ClubController {
     @PostMapping("/apply")
     public ResponseEntity<Response<?>> applyToClub(@RequestBody WaitingListDto waitingListDto) {
         try {
-            boolean result = clubService.applyToClub(waitingListDto);
-            if (result) {
+            ClubIdRequestDto clubIdDto = clubService.applyToClub(waitingListDto);
+            if (clubIdDto != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(new Response<>(
-                        "true", "동아리 신청 성공", null));
+                        "true", "동아리 신청 성공", clubIdDto));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
                         "false", "동아리 신청 실패: 이미 신청한 동아리입니다.", null));
@@ -67,10 +68,10 @@ public class ClubController {
     @PostMapping("/application/decision")
     public ResponseEntity<Response<?>> approveApplication(@RequestBody WaitingListDecisionDto waitingListDecisionDto) {
         try {
-            boolean result = clubService.processClubApplication(waitingListDecisionDto);
-            if (result) {
+            ClubIdRequestDto clubIdDto = clubService.processClubApplication(waitingListDecisionDto);
+            if (clubIdDto != null) {
                 return ResponseEntity.ok(new Response<>(
-                        "true", "동아리 신청 승인 성공", null));
+                        "true", "동아리 신청 승인/거절 성공", clubIdDto));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
                         "false", "동아리 신청 승인 실패: 해당 신청이 존재하지 않습니다.", null));
