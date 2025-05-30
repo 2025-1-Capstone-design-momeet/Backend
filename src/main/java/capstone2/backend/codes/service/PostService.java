@@ -1,8 +1,6 @@
 package capstone2.backend.codes.service;
 
-import capstone2.backend.codes.dto.PostDeleteDto;
-import capstone2.backend.codes.dto.PostDto;
-import capstone2.backend.codes.dto.PostWriteDto;
+import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.dto.PostWriteDto;
 import capstone2.backend.codes.entity.*;
 import capstone2.backend.codes.enums.PostType;
@@ -111,7 +109,7 @@ public class PostService {
         }
     }
 
-    public String savePost(PostWriteDto dto, MultipartFile file) {
+    public PostNumDto savePost(PostWriteDto dto, MultipartFile file) {
         try {
             String postNum = UUID.randomUUID().toString().replace("-", "");
 
@@ -144,8 +142,7 @@ public class PostService {
             );
 
             postRepository.save(post);
-            postRepository.flush();
-            return postNum;
+            return new PostNumDto(post.getPostNum());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("게시글 저장 실패", e);

@@ -1,20 +1,13 @@
 package capstone2.backend.codes.service;
 
 import capstone2.backend.codes.dto.*;
-import capstone2.backend.codes.entity.Club;
-import capstone2.backend.codes.entity.ClubMembers;
-import capstone2.backend.codes.entity.Post;
-import capstone2.backend.codes.entity.WaitingList;
-import capstone2.backend.codes.repository.ClubMembersRepository;
-import capstone2.backend.codes.repository.ClubPostRepository;
-import capstone2.backend.codes.repository.ClubRepository;
-import capstone2.backend.codes.repository.WaitingListRepository;
+import capstone2.backend.codes.entity.*;
+import capstone2.backend.codes.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +17,9 @@ public class ClubService {
     private final WaitingListRepository waitingListRepository;
     private final ClubPostRepository clubPostRepository;
     private final CalendarService calendarService;
+    private final ExecutiveRepository executiveRepository;
+    private final PresidentRepository presidentRepository;
+    private final UserRepository userRepository;
 
     // 내 클럽 조회
     public List<Club> getClubsByUserId(String userId) throws Exception {
@@ -44,15 +40,19 @@ public class ClubService {
         }
     }
 
-    // 동아리 추가
-    public boolean addClub(ClubDto clubDto) throws Exception {
+    public Club addClub(ClubDto clubDto) throws Exception {
         try {
-            // 같은 학교에 같은 이름의 동아리가 이미 존재하는지 확인
-            boolean exists = clubRepository.existsByClubNameAndUnivName(clubDto.getClubName(), clubDto.getUnivName());
-            if (exists) return false;
+            // 1. 중복 체크
+            boolean exists = clubRepository.existsByClubNameAndUnivName(
+                    clubDto.getClubName(), clubDto.getUnivName()
+            );
+            if (exists) return null;
+
+            // 2. Club 생성
+            String clubId = UUID.randomUUID().toString().replace("-", "");
 
             Club club = new Club();
-            club.setClubId(UUID.randomUUID().toString().replace("-", ""));
+            club.setClubId(clubId);
             club.setClubName(clubDto.getClubName());
             club.setProfileImage(null);
             club.setManagerId(clubDto.getManagerId());
@@ -60,23 +60,29 @@ public class ClubService {
             club.setBannerImage(null);
             club.setUnivName(clubDto.getUnivName());
             club.setOfficial(false);
+
             clubRepository.save(club);
-            return true;
+
+            // 3. 회장 등록
+            registerInitialPresident(clubId, clubDto.getManagerId());
+
+            // ✅ 4. Club 반환
+            return club;
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("동아리 추가 중 오류 발생", e);
         }
     }
 
-    // 동아리 삭제
-    public boolean applyToClub(WaitingListDto waitingListDto) {
+    public ClubIdRequestDto applyToClub(WaitingListDto waitingListDto) {
         try {
             // 중복 신청 여부 확인
             boolean exists = waitingListRepository.existsByUserIdAndClubId(
                     waitingListDto.getUserId(),
                     waitingListDto.getClubId()
             );
-            if (exists) return false;
+            if (exists) return null;
 
             // 신청 정보 저장
             WaitingList waiting = new WaitingList();
@@ -85,18 +91,22 @@ public class ClubService {
             waiting.setWhy(waitingListDto.getWhy());
             waiting.setWhat(waitingListDto.getWhat());
             waitingListRepository.save(waiting);
-            return true;
+
+            ClubIdRequestDto clubIdRequestDto = new ClubIdRequestDto();
+            clubIdRequestDto.setClubId(waitingListDto.getClubId());
+            return clubIdRequestDto;
+
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
-    public boolean processClubApplication(WaitingListDecisionDto dto) {
+    public ClubIdRequestDto processClubApplication(WaitingListDecisionDto dto) {
         try {
             Optional<WaitingList> optional = waitingListRepository.findByUserIdAndClubId(dto.getUserId(), dto.getClubId());
             if (optional.isEmpty()) {
-                return false;
+                return null;
             }
 
             // 승인 처리
@@ -110,11 +120,15 @@ public class ClubService {
 
             // 승인이든 거절이든 WaitingList에서 삭제
             waitingListRepository.delete(optional.get());
-            return true;
+
+            // ✅ 승인 또는 거절 후 clubId 반환
+            ClubIdRequestDto result = new ClubIdRequestDto();
+            result.setClubId(dto.getClubId());
+            return result;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -131,18 +145,16 @@ public class ClubService {
                 })
                 .toList();
     }
+
     public ClubMainDto getClubMainInfo(String clubId) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
 
-        // TODO: 여기 president, executive 엔티티, 여기 인원 합산 기능 만들고 club create할 때 managerId를 회장에 추가해야함
-
         // ✅ 인원 수 계산: 회장 + 임원 + 멤버
-        //int presidentCount = presidentRepository.countByClubId(clubId);
-        //int executiveCount = executiveRepository.countByClubId(clubId);
+        int presidentCount = presidentRepository.findByClubId(clubId).isPresent() ? 1 : 0;
+        int executiveCount = executiveRepository.countByClubId(clubId);
         int memberCount = clubMembersRepository.countByClubId(clubId);
-        //int totalCount = presidentCount + executiveCount + memberCount;
-        int totalCount = memberCount; // 현재는 회장과 임원 수를 고려하지 않음
+        int totalCount = presidentCount + executiveCount + memberCount;
 
         String welcomeMessage = "안녕하세요, " + club.getClubName() + " 입니다!";
         String bannerImage = club.getBannerImage();
@@ -177,4 +189,89 @@ public class ClubService {
                 recentPosts
         );
     }
+
+    public List<User> getAllUsersInClub(String clubId) {
+        Set<String> seenUserIds = new HashSet<>();
+        List<User> allUsers = new ArrayList<>();
+
+        // 1. 일반 멤버
+        List<User> members = clubMembersRepository.findByClubId(clubId)
+                .stream()
+                .map(ClubMembers::getUser)
+                .filter(Objects::nonNull)
+                .toList();
+
+        for (User user : members) {
+            if (seenUserIds.add(user.getUserId())) {
+                allUsers.add(user);
+            }
+        }
+
+        // 2. 임원
+        List<User> executives = executiveRepository.findByClubId(clubId)
+                .stream()
+                .map(Executive::getUser)
+                .filter(Objects::nonNull)
+                .toList();
+
+        for (User user : executives) {
+            if (seenUserIds.add(user.getUserId())) {
+                allUsers.add(user);
+            }
+        }
+
+        // 3. 회장
+        Optional<User> presidentOpt = presidentRepository.findByClubId(clubId)
+                .map(President::getUser);
+
+        if (presidentOpt.isPresent()) {
+            User president = presidentOpt.get();
+            if (seenUserIds.add(president.getUserId())) {
+                allUsers.add(president);
+            }
+        }
+
+        return allUsers;
+    }
+
+
+    /**
+     * ✔ 동아리 생성 시 초기 회장 등록 (managerId를 기준으로)
+     */
+    public void registerInitialPresident(String clubId, String userId) {
+        President president = new President();
+        president.setClubId(clubId);
+        president.setUserId(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저가 존재하지 않습니다."));
+        president.setUser(user);
+
+        presidentRepository.save(president);
+    }
+
+    /**
+     * ✔ 회장 위임 기능 (기존 회장은 덮어씀)
+     */
+    @Transactional
+    public boolean delegatePresident(String clubId, String newUserId) {
+        President president = presidentRepository.findByClubId(clubId)
+                .orElseGet(() -> {
+                    President p = new President();
+                    p.setClubId(clubId);
+                    return p;
+                });
+
+        // set userId
+        president.setUserId(newUserId);
+
+        // fetch and bind User entity explicitly
+        User user = userRepository.findById(newUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저 없음"));
+        president.setUser(user);
+
+        presidentRepository.save(president);
+        return true;
+    }
+
 }
