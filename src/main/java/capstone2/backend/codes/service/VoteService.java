@@ -128,6 +128,11 @@ public class VoteService {
         try {
             Vote vote = voteRepository.findById(voteStateDto.getVoteID())
                     .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
+            // ✅ 투표 마감 여부 체크
+            if (vote.getEndDate() != null && vote.getEndDate().isBefore(LocalDateTime.now())) {
+                return false; // 마감된 투표이면 false 리턴
+            }
+
             User user = userRepository.findById(voteStateDto.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
             VoteContent voteContent = voteContentRepository.findById(voteStateDto.getVoteContentId())
