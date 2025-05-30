@@ -254,24 +254,61 @@ public class ClubService {
      * ✔ 회장 위임 기능 (기존 회장은 덮어씀)
      */
     @Transactional
-    public boolean delegatePresident(String clubId, String newUserId) {
-        President president = presidentRepository.findByClubId(clubId)
-                .orElseGet(() -> {
-                    President p = new President();
-                    p.setClubId(clubId);
-                    return p;
-                });
+    public ClubDelegateDto delegatePresident(ClubDelegateDto clubDelegateDto) {
+        String clubId = clubDelegateDto.getClubId();
+        String newUserId = clubDelegateDto.getNewUserId();
 
-        // set userId
+        // 1. 기존 회장이 있으면 → 멤버로 이동
+        Optional<President> optional = presidentRepository.findByClubId(clubId);
+
+        optional.ifPresent(oldPresident -> {
+            String oldUserId = oldPresident.getUserId();
+
+            // 이전 회장과 newUser가 같으면 아무것도 안 해도 됨
+            if (!oldUserId.equals(newUserId)) {
+                boolean alreadyMember = clubMembersRepository.existsByUserIdAndClubId(oldUserId, clubId);
+                if (!alreadyMember) {
+                    ClubMembers downgraded = new ClubMembers();
+                    downgraded.setUserId(oldUserId);
+                    downgraded.setClubId(clubId);
+                    downgraded.setRole(null);
+                    clubMembersRepository.save(downgraded);
+                }
+            }
+        });
+
+        // 2. newUserId가 ClubMembers 또는 Executive에 있으면 제거
+        ClubMembersId newId = new ClubMembersId(newUserId, clubId);
+        clubMembersRepository.findById(newId).ifPresent(clubMembersRepository::delete);
+        executiveRepository.findById(newId).ifPresent(executiveRepository::delete);
+
+        // 3. 회장 교체 (기존 없으면 새로 생성)
+        President president = optional.orElseGet(() -> {
+            President p = new President();
+            p.setClubId(clubId);
+            return p;
+        });
+
         president.setUserId(newUserId);
 
-        // fetch and bind User entity explicitly
         User user = userRepository.findById(newUserId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저 없음"));
         president.setUser(user);
 
         presidentRepository.save(president);
-        return true;
+
+        return clubDelegateDto;
     }
 
+    public boolean canManageClub(String userId, String clubId) {
+        // 회장인지 확인
+        boolean isPresident = presidentRepository.findByClubId(clubId)
+                .map(p -> p.getUserId().equals(userId))
+                .orElse(false);
+
+        // 임원인지 확인
+        boolean isExecutive = executiveRepository.existsByUserIdAndClubId(userId, clubId);
+
+        return isPresident || isExecutive;
+    }
 }
