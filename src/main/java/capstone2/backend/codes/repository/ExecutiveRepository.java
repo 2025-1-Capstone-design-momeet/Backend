@@ -9,4 +9,5 @@ import java.util.List;
 public interface ExecutiveRepository extends JpaRepository<Executive, ClubMembersId> {
     List<Executive> findByClubId(String clubId);
     int countByClubId(String clubId);
+    boolean existsByUserIdAndClubId(String userId, String clubId);
 }

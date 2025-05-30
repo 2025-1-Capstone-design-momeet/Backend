@@ -299,4 +299,16 @@ public class ClubService {
 
         return clubDelegateDto;
     }
+
+    public boolean canManageClub(String userId, String clubId) {
+        // 회장인지 확인
+        boolean isPresident = presidentRepository.findByClubId(clubId)
+                .map(p -> p.getUserId().equals(userId))
+                .orElse(false);
+
+        // 임원인지 확인
+        boolean isExecutive = executiveRepository.existsByUserIdAndClubId(userId, clubId);
+
+        return isPresident || isExecutive;
+    }
 }
