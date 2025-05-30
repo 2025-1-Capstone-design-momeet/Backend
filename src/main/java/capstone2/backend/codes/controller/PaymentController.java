@@ -70,9 +70,9 @@ public class PaymentController {
     }
 
     @PostMapping("/getPaymentStatesByPayId")
-    public ResponseEntity<Response<?>> getPaymentStatesByPayId(@RequestBody PaymentHistoryIdDto paymentHistoryIdDto) {
+    public ResponseEntity<Response<?>> getPaymentStatesByPayId(@RequestBody PaymentStateDto paymentStateDto) {
         try {
-            List<PaymentStateDto> paymentStates = paymentService.getPaymentStatesByPayId(paymentHistoryIdDto.getPayId());
+            List<PaymentStateDto> paymentStates = paymentService.getPaymentStatesByPayId(paymentStateDto);
             return ResponseEntity.ok(new Response<>("true", "특정 정산에 대한 정산 현황 리스트 가져오기 성공", paymentStates));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
