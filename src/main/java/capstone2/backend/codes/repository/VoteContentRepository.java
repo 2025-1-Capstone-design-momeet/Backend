@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface VoteContentRepository extends JpaRepository<VoteContent, String> {
+    // 해당 번호를 선택한 회원수 가져오기
     @Query(
             value = "SELECT vc.voteContentId AS voteContentID, vc.voteID AS voteID, vc.field AS field, vc.voteNum AS voteNum, COUNT(vs.userId) AS voteContentNum " +
                     "FROM VoteContent vc " +
@@ -19,13 +20,18 @@ public interface VoteContentRepository extends JpaRepository<VoteContent, String
             nativeQuery = true)
     List<Object[]> findVoteContentWithCount(@Param("voteId") String voteId);
 
+    // 해당 번호를 선택한 동아리 회원 가져오기
     @Query(
             value = "SELECT u.* " +
                     "FROM VoteState vs " +
                     "JOIN User u ON vs.userId = u.userId " +
                     "WHERE vs.voteID = :voteId AND vs.voteContentId = :voteContentId",
             nativeQuery = true)
-    List<User> findUsersByVoteContentAndContentId(@Param("voteId") String voteId, @Param("voteContentId") String voteContentId);
+    List<User> findUsersByVoteContentAndContentId(
+            @Param("voteId") String voteId,
+            @Param("voteContentId") String voteContentId);
+
+    // 해당 번호를 선택하지 않은 동아리 회원 전체 가져오기
     @Query(
             value = "SELECT u.* " +
                     "FROM ClubMembers cm " +

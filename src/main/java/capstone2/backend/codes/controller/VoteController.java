@@ -2,15 +2,11 @@ package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.*;
-import capstone2.backend.codes.entity.VoteState;
-import capstone2.backend.codes.enums.PostType;
-import capstone2.backend.codes.service.PostService;
 import capstone2.backend.codes.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -67,7 +63,7 @@ public class VoteController {
         try {
             if (!voteService.vote(voteStateDto)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new Response<>("false", "투표에 실패했습니다.", null));
+                        .body(new Response<>("false", "투표 기간이 끝났습니다.", null));
             }
             else {
                 return ResponseEntity.ok(
