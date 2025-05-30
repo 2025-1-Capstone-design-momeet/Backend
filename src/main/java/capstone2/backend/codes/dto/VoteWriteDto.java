@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VoteWriteDto {
+    private String userId;
     private String clubId;
     private LocalDateTime endDate;
     private String title;

@@ -42,6 +42,7 @@ public class PostService {
         }
     }
 
+    // 게시글 삭제
     public boolean deletePost(PostDeleteDto postDeleteDto) throws Exception {
 
         try {
@@ -62,6 +63,7 @@ public class PostService {
         }
     }
 
+    // 게시글 가져오기
     public PostDto getPost(String postNum) throws Exception {
         try {
             Post post = postRepository.findById(postNum)
@@ -84,6 +86,7 @@ public class PostService {
         }
     }
 
+    // 동아리 게시글 리스트 가져오기
     @Transactional
     public List<PostDto> getClubPostList(String clubId) throws Exception {
         try {
@@ -103,6 +106,7 @@ public class PostService {
         }
     }
 
+    // 게시글 파일 저장 성공
     public PostNumDto savePost(PostWriteDto dto, MultipartFile file) {
         try {
             String postNum = UUID.randomUUID().toString().replace("-", "");
@@ -143,6 +147,7 @@ public class PostService {
         }
     }
 
+    // 동아리 게시물 추가
     public void createClubPost(String postNum, String clubId) {
         try {
             Club club = clubRepository.findById(clubId)
@@ -162,6 +167,7 @@ public class PostService {
         }
     }
 
+    // 포스터 게시물 추가
     public void createPoster(String postNum) {
         try {
             Post post = postRepository.findById(postNum)
