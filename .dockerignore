@@ -1,18 +1,27 @@
-# 빌드시 불필요하거나 용량 큰 항목
+# 빌드 산출물
 build/
 .gradle/
 .idea/
-images/
-minute/
+
+# 크롤링 관련 폴더 전체 제외 (마운트로 사용)
+src/crawling/
+
+# resources 내 동적/마운트용 폴더
+src/main/resources/temp/
+src/main/resources/minutes/
+src/main/resources/posts/
+
+# 대용량 또는 바이너리 파일
 *.log
 *.zip
 *.hwp
 *.csv
+*.wav
 
-# 보안 민감 정보
+# 민감 정보
 .env
 application-*.yml
 
-# Git 관련
+# Git
 .git/
 .gitignore

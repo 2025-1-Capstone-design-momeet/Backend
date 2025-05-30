@@ -16,5 +16,5 @@ public class VoteWriteDto {
     private String content;
     private boolean anonymous;
 
-    private List<VoteContentWriteDto> voteContets;
+    private List<VoteContentWriteDto> voteContents;
 }

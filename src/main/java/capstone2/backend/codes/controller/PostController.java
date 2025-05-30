@@ -18,23 +18,28 @@ import java.util.List;
 @RequestMapping("/api/post")
 public class PostController {
     private final PostService postService;
+    private final ClubService clubService;
 
     @PostMapping("/write")
     public ResponseEntity<Response<?>> writePost(
-            @RequestPart("postWriteDTO") PostWriteDTO dto,
+            @RequestPart("postWriteDTO") PostWriteDto dto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            String postNum = postService.savePost(dto, file);
-            if (PostType.fromCode(dto.getType()) == PostType.GENERAL) {
-                postService.createClubPost(postNum, dto.getClubId());
-            }
-            else if (PostType.fromCode(dto.getType()) == PostType.POSTER) {
-                postService.createPoster(postNum);
+            if (clubService.canManageClub(dto.getUserId(), dto.getClubId())) {
+                PostNumDto postNumDto = postService.savePost(dto, file);
+                if (PostType.fromCode(dto.getType()) == PostType.GENERAL) {
+                    postService.createClubPost(postNumDto.getPostNum(), dto.getClubId());
+                } else if (PostType.fromCode(dto.getType()) == PostType.POSTER) {
+                    postService.createPoster(postNumDto.getPostNum());
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new Response<>("false", "잘못된 게시글 유형입니다.", null));
+                }
+                return ResponseEntity.ok(new Response<>("true", "게시글 작성 성공", postNumDto));
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new Response<>("false", "잘못된 게시글 유형입니다.", null));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new Response<>("false", "해당 동아리에서 게시글을 작성할 권한이 없습니다.", null));
             }
-            return ResponseEntity.ok(new Response<>("true", "게시글 작성 성공", null));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

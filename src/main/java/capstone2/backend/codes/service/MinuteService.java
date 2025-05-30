@@ -1,7 +1,6 @@
 package capstone2.backend.codes.service;
 
 import capstone2.backend.codes.dto.MinuteDetailDto;
-import capstone2.backend.codes.dto.MinuteDto;
 import capstone2.backend.codes.dto.MinuteListDto;
 import capstone2.backend.codes.dto.ScriptLine;
 import capstone2.backend.codes.entity.Club;
