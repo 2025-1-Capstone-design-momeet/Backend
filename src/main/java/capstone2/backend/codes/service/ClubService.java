@@ -297,6 +297,12 @@ public class ClubService {
 
         presidentRepository.save(president);
 
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 동아리가 존재하지 않습니다."));
+
+        club.setManagerId(newUserId);
+        clubRepository.save(club);
+
         return clubDelegateDto;
     }
 
