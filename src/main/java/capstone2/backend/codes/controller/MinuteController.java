@@ -1,6 +1,7 @@
 package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
+import capstone2.backend.codes.dto.ClubIdRequestDto;
 import capstone2.backend.codes.dto.MinuteIdDto;
 import capstone2.backend.codes.dto.UserIdRequestDto;
 import capstone2.backend.codes.service.MinuteService;
@@ -88,6 +89,19 @@ public class MinuteController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Response<>("false", "회의록 목록 조회 실패", null));
+        }
+    }
+
+    @PostMapping("/clubList")
+    public ResponseEntity<Response<?>> getMinutesByClubId(@RequestBody ClubIdRequestDto clubIdRequestDto) {
+        try {
+            return ResponseEntity.ok(
+                    new Response<>("true", "동아리 회의록 목록 조회 성공",
+                            minuteService.getMinutesByClubId(clubIdRequestDto.getClubId()))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "동아리 회의록 목록 조회 실패", null));
         }
     }
 
