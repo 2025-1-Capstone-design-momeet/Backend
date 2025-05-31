@@ -198,4 +198,24 @@ public class MinuteService {
             throw new RuntimeException("회의록 목록 조회 실패", e);
         }
     }
+
+    public List<MinuteListDto> getMinutesByClubId(String clubId) {
+        try {
+            List<Minute> minutes = minuteRepository.findByClub_ClubId(clubId);
+            List<MinuteListDto> minuteDtos = new ArrayList<>();
+            for (Minute minute : minutes) {
+                String title = (minute.getSummaryContents() != null && !minute.getSummaryContents().isEmpty())
+                        ? minute.getSummaryContents() : "현재 서버에서 처리 중입니다.";
+                minuteDtos.add(new MinuteListDto(
+                        minute.getMinuteId(),
+                        title,
+                        minute.getDate()
+                ));
+            }
+            return minuteDtos;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("회의록 목록 조회 실패", e);
+        }
+    }
 }
