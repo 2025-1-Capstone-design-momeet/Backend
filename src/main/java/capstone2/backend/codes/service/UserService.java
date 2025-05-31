@@ -1,5 +1,6 @@
 package capstone2.backend.codes.service;
 
+import capstone2.backend.codes.dto.ClubSummaryDto;
 import capstone2.backend.codes.dto.UserDto;
 import capstone2.backend.codes.dto.UserMainDto;
 import capstone2.backend.codes.entity.University;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -212,13 +214,23 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
+                LocalDateTime now = LocalDateTime.now().minusDays(7);
                 return new UserMainDto(user,
                         clubMembersRepository.findClubSummariesByUserId(userId),
-                        posterRepository.findAllByUnivName(user.getUnivName()),
+                        posterRepository.findAllByUnivNameWithinAWeek(user.getUnivName(), now),
                         clubPromotionRepository.findRecruitingClubsByUnivName(user.getUnivName())
                 );
             }
             return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    public List<ClubSummaryDto> getMyClubSummary(String userId) throws Exception {
+        try {
+            return clubMembersRepository.findClubSummariesByUserId(userId);
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();

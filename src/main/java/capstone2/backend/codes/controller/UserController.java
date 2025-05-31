@@ -2,6 +2,7 @@ package capstone2.backend.codes.controller;
 
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.UserDto;
+import capstone2.backend.codes.dto.UserIdRequestDto;
 import capstone2.backend.codes.dto.UserInfoDto;
 import capstone2.backend.codes.dto.UserMainDto;
 import capstone2.backend.codes.entity.User;
@@ -110,6 +111,22 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Response<>("false", "메인 페이지 조회 중 오류가 발생했습니다.", null));
+        }
+    }
+
+    @PostMapping("/myClubs")
+    public ResponseEntity<Response<?>> getMyClubs(@RequestBody UserIdRequestDto dto) {
+        try {
+            if (dto.getUserId() == null || dto.getUserId().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new Response<>("false", "사용자 ID가 제공되지 않았습니다.", null));
+            }
+            return ResponseEntity.ok(
+                    new Response<>("true", "사용자의 동아리 목록 조회가 완료되었습니다.",
+                            userService.getMyClubSummary(dto.getUserId())
+            ));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
