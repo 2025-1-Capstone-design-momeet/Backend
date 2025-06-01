@@ -125,10 +125,6 @@ public class PaymentService {
             PaymentHistory pay = paymentHistoryRepository.findById(paymentStateDto.getPayId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
 
-            // 관리자 권한 확인
-            if(clubService.canManageClub(paymentStateDto.getUserId(),pay.getClubId())){
-                return false;
-            }
             User user = userRepository.findById(paymentStateDto.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
             PaymentState paymentState = paymentStateRepository.findByPayIdAndUserId(
