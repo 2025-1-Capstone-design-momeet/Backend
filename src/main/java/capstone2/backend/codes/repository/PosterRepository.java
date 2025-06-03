@@ -19,17 +19,18 @@ public interface PosterRepository extends JpaRepository<Poster, String> {
     WHERE c.univName = :univName
     """)
     List<Poster> findAllByUnivName(@Param("univName") String univName);
-        @Query("""
-            SELECT DISTINCT p
-            FROM Poster p
-            JOIN FETCH p.post po
-            JOIN FETCH po.clubPost cp
-            JOIN FETCH cp.club c
-            LEFT JOIN FETCH cp.club.clubPromotion
-            WHERE c.univName = :univName
-            AND po.date >= :cutoff
-        """)
-        List<Poster> findAllByUnivNameWithinAWeek(
+    @Query("""
+        SELECT DISTINCT p
+        FROM Poster p
+        JOIN FETCH p.post po
+        LEFT JOIN FETCH po.clubPost cp
+        LEFT JOIN FETCH cp.club c
+        LEFT JOIN FETCH c.clubPromotion
+        WHERE (c.univName = :univName OR c IS NULL)
+        AND po.date >= :cutoff
+    """)
+
+    List<Poster> findAllByUnivNameWithinAWeek(
                 @Param("univName") String univName,
                 @Param("cutoff") LocalDateTime cutoff
         );

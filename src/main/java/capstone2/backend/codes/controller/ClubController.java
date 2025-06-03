@@ -3,7 +3,6 @@ package capstone2.backend.codes.controller;
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.entity.Club;
-import capstone2.backend.codes.entity.WaitingList;
 import capstone2.backend.codes.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
