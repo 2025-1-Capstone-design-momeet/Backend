@@ -31,6 +31,18 @@ public interface VoteContentRepository extends JpaRepository<VoteContent, String
             @Param("voteId") String voteId,
             @Param("voteContentId") String voteContentId);
 
+    // 해당 번호를 선택한 동아리 회원의 수(count)
+    @Query(
+            value = "SELECT COUNT(*) " +
+                    "FROM VoteState vs " +
+                    "JOIN User u ON vs.userId = u.userId " +
+                    "WHERE vs.voteID = :voteId AND vs.voteContentId = :voteContentId",
+            nativeQuery = true)
+    int countUsersByVoteContentAndContentId(
+            @Param("voteId") String voteId,
+            @Param("voteContentId") String voteContentId);
+
+
     // 해당 번호를 선택하지 않은 동아리 회원 전체 가져오기
     @Query(
             value = "SELECT u.* " +
