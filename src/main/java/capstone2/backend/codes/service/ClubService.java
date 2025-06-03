@@ -394,6 +394,7 @@ public class ClubService {
             }
             return new ClubPromotionDetailDto(
                     club.getClubName(),
+                    club.getCategory(),
                     promotion.getTarget(),
                     promotion.getDues(),
                     promotion.isInterview(),
