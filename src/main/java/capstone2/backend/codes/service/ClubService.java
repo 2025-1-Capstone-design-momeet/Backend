@@ -20,6 +20,7 @@ public class ClubService {
     private final ExecutiveRepository executiveRepository;
     private final PresidentRepository presidentRepository;
     private final UserRepository userRepository;
+    private final ClubPromotionRepository clubPromotionRepository;
 
     // 내 클럽 조회
     public List<ClubSummaryDto> getClubsByUserId(String userId) throws Exception {
@@ -326,6 +327,62 @@ public class ClubService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("동아리 신청 리스트 조회 중 오류 발생");
+        }
+    }
+
+    public ClubPromotionDto writeClubPromotion(ClubPromotionDto clubPromotionDto) {
+        try {
+            String clubId = clubPromotionDto.getClubId();
+            Club club = clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
+
+            ClubPromotion promotion = new ClubPromotion();
+            promotion.setClubId(clubId);
+            promotion.setTarget(clubPromotionDto.getTarget());
+            promotion.setDues(clubPromotionDto.getDues());
+            promotion.setInterview(clubPromotionDto.isInterview());
+            promotion.setEndDate(clubPromotionDto.getEndDate());
+            promotion.setRecruiting(clubPromotionDto.isRecruiting());
+
+            promotion.setClub(club);
+            clubPromotionRepository.save(promotion);
+            return new ClubPromotionDto(
+                    clubId,
+                    promotion.getTarget(),
+                    promotion.getDues(),
+                    promotion.isInterview(),
+                    promotion.getEndDate(),
+                    promotion.isRecruiting()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("동아리 홍보 작성 중 오류 발생", e);
+        }
+    }
+
+    public ClubPromotionDetailDto getClubPromotionDetail(ClubIdRequestDto clubIdRequestDto) {
+        try {
+            String clubId = clubIdRequestDto.getClubId();
+            Club club = clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
+
+            ClubPromotion promotion = clubPromotionRepository.findByClubId(clubId)
+                    .orElse(null);
+
+            if (promotion == null) {
+                return null;
+            }
+            return new ClubPromotionDetailDto(
+                    club.getClubName(),
+                    promotion.getTarget(),
+                    promotion.getDues(),
+                    promotion.isInterview(),
+                    promotion.getEndDate(),
+                    promotion.isRecruiting()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("동아리 홍보 상세 조회 중 오류 발생", e);
         }
     }
 }
