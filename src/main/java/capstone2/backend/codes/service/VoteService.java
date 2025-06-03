@@ -190,7 +190,7 @@ public class VoteService {
         }
     }
 
-    // 투표 멤버 현황
+    // 해당 번호를 선택한 동아리 회원 가져오기
     public List<UserDto> voteStateMembers(VoteStateDto voteStateDto) throws Exception {
         try {
             voteRepository.findById(voteStateDto.getVoteID())
@@ -214,6 +214,19 @@ public class VoteService {
                             u.isGender()
                     ))
                     .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    // 해당 번호를 선택한 동아리 회원 가져오기
+    public int voteStateMemberNum(VoteStateDto voteStateDto) throws Exception {
+        try {
+            voteRepository.findById(voteStateDto.getVoteID())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
+            return (voteContentRepository.countUsersByVoteContentAndContentId(voteStateDto.getVoteID(),voteStateDto.getVoteContentId()));
 
         } catch (Exception e) {
             e.printStackTrace();
