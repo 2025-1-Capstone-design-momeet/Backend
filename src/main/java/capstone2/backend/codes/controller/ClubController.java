@@ -148,4 +148,16 @@ public class ClubController {
                     "false","동아리 위임 중 오류 발생", null));
         }
     }
+
+    @PostMapping("/hasPermission")
+    public ResponseEntity<Response<?>> hasPermission(@RequestBody ClubUserRequestDto clubUserRequestDto) {
+        try {
+            boolean hasPermission = clubService.canManageClub(clubUserRequestDto.getClubId(), clubUserRequestDto.getUserId());
+            return ResponseEntity.ok(new Response<>(
+                    "true", "동아리 권한 확인 성공", hasPermission));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 권한 확인 중 오류 발생", null));
+        }
+    }
 }
