@@ -333,6 +333,8 @@ public class ClubService {
                         waitingList.getUserId(),
                         user.getName(),
                         user.getDepartment(),
+                        user.getStudentNum(),
+                        user.getGrade(),
                         waitingList.getWhy(),
                         waitingList.getWhat()
                 );

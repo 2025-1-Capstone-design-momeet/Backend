@@ -11,6 +11,8 @@ public class WaitingListListDto {
     private String userId;
     private String userName;
     private String department;
+    private String studentNum;
+    private String grade;
     private String why;
     private String what;
 }
