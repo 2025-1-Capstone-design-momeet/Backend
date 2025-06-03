@@ -10,4 +10,6 @@ import java.util.Optional;
 
 public interface VoteStateRepository extends JpaRepository<VoteState, String> {
     VoteState findByUserIdAndVoteID(String userId, String voteID);
+    Optional<VoteState> findByUser_UserIdAndVote_VoteID(String userId, String voteID);
+
 }

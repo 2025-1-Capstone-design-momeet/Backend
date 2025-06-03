@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -128,10 +129,11 @@ public class VoteService {
 
 
     // 투표 선택
-    public boolean vote (VoteStateDto voteStateDto) throws Exception {
+    public boolean vote(VoteStateDto voteStateDto) throws Exception {
         try {
             Vote vote = voteRepository.findById(voteStateDto.getVoteID())
                     .orElseThrow(() -> new IllegalArgumentException("해당 voteID의 투표를 찾을 수 없습니다."));
+
             // ✅ 투표 마감 여부 체크
             if (vote.getEndDate() != null && vote.getEndDate().isBefore(LocalDateTime.now())) {
                 return false; // 마감된 투표이면 false 리턴
@@ -139,25 +141,42 @@ public class VoteService {
 
             User user = userRepository.findById(voteStateDto.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 userId의 유저를 찾을 수 없습니다."));
+
             VoteContent voteContent = voteContentRepository.findById(voteStateDto.getVoteContentId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 voteContentID의 투표번호를 찾을 수 없습니다."));
-            VoteState voteState = new VoteState(
-                    voteStateDto.getUserId(),
-                    voteStateDto.getVoteID(),
-                    voteContent.getVoteContentId(),
-                    voteStateDto.getVoteNum(),
-                    user,
-                    vote,
-                    voteContent
+
+            // ✅ 기존 투표 여부 확인
+            Optional<VoteState> existingVoteStateOpt = voteStateRepository.findByUser_UserIdAndVote_VoteID(
+                    voteStateDto.getUserId(), voteStateDto.getVoteID()
             );
-            voteStateRepository.save(voteState);
+
+            if (existingVoteStateOpt.isPresent()) {
+                // 이미 존재하면 수정
+                VoteState existingVoteState = existingVoteStateOpt.get();
+                existingVoteState.setVoteNum(voteStateDto.getVoteNum());
+                existingVoteState.setVoteContent(voteContent); // 연관 투표 항목도 갱신
+                voteStateRepository.save(existingVoteState);
+            } else {
+                // 존재하지 않으면 새로 생성
+                VoteState newVoteState = new VoteState(
+                        voteStateDto.getUserId(),
+                        voteStateDto.getVoteID(),
+                        voteContent.getVoteContentId(),
+                        voteStateDto.getVoteNum(),
+                        user,
+                        vote,
+                        voteContent
+                );
+                voteStateRepository.save(newVoteState);
+            }
+
             return true;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();
         }
     }
+
 
     // 해당 유저의 투표 현황
     public VoteStateDto voteState (VoteStateDto voteStateDto) throws Exception {
