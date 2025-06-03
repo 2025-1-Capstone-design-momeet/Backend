@@ -318,12 +318,27 @@ public class ClubService {
         return isPresident || isExecutive;
     }
 
-    public List<WaitingList> getClubApplicationList(ClubIdRequestDto clubIdRequestDto) {
+    public List<WaitingListListDto> getClubApplicationList(ClubIdRequestDto clubIdRequestDto) {
         try {
             String clubId = clubIdRequestDto.getClubId();
             Club club = clubRepository.findById(clubId)
                     .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
-            return waitingListRepository.findByClubId(club.getClubId());
+            List<WaitingList> waitingLists = waitingListRepository.findByClubId(club.getClubId());
+            List<WaitingListListDto> waitingListDtos = new ArrayList<>();
+
+            for (WaitingList waitingList : waitingLists) {
+                User user = userRepository.findById(waitingList.getUserId())
+                        .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+                WaitingListListDto dto = new WaitingListListDto(
+                        waitingList.getUserId(),
+                        user.getName(),
+                        user.getDepartment(),
+                        waitingList.getWhy(),
+                        waitingList.getWhat()
+                );
+                waitingListDtos.add(dto);
+            }
+            return waitingListDtos;
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("동아리 신청 리스트 조회 중 오류 발생");
@@ -468,5 +483,64 @@ public class ClubService {
 
         return true;
     }
+        public List<ClubMembersDto> getClubMembers(String clubId) {
+            try {
+                // 1) 일반 멤버(ClubMembers) 조회
+                List<ClubMembers> members       = clubMembersRepository.findByClubId(clubId);
+                // 2) 임원(Executive) 조회
+                List<Executive>   executives    = executiveRepository.findByClubId(clubId);
+                // 3) 회장(President) 조회 (Optional)
+                Optional<President> presidentOpt = presidentRepository.findByClubId(clubId);
 
+                List<ClubMembersDto> memberDtos = new ArrayList<>();
+
+                // --- 1) 일반 멤버 처리 (role만 세팅) ---
+                for (ClubMembers cm : members) {
+                    String userId = cm.getUserId();
+                    userRepository.findById(userId).ifPresent(user -> {
+                        ClubMembersDto dto = new ClubMembersDto();
+                        dto.setUserId(user.getUserId());
+                        dto.setUserName(user.getName());
+                        dto.setRole(cm.getRole());        // 일반 멤버만 role 채워줌
+                        dto.setDuty(null);               // duty는 비워둠
+                        dto.setDepartment(user.getDepartment());
+                        memberDtos.add(dto);
+                    });
+                }
+
+                // --- 2) 임원 처리 (duty만 세팅) ---
+                for (Executive ex : executives) {
+                    String userId = ex.getUserId();
+                    userRepository.findById(userId).ifPresent(user -> {
+                        ClubMembersDto dto = new ClubMembersDto();
+                        dto.setUserId(user.getUserId());
+                        dto.setUserName(user.getName());
+                        dto.setDuty(ex.getDuty());      // 임원만 duty 채워줌 (예: “총무”, “서기” 등)
+                        dto.setRole(null);              // role은 비워둠
+                        dto.setDepartment(user.getDepartment());
+                        memberDtos.add(dto);
+                    });
+                }
+
+                // --- 3) 회장 처리 (President) ---
+                if (presidentOpt.isPresent()) {
+                    President pres = presidentOpt.get();
+                    String userId = pres.getUserId();
+                    userRepository.findById(userId).ifPresent(user -> {
+                        ClubMembersDto dto = new ClubMembersDto();
+                        dto.setUserId(user.getUserId());
+                        dto.setUserName(user.getName());
+                        dto.setDuty("회장");  // 회장은 duty에 “동아리장” 고정
+                        dto.setRole(null);       // role은 비워둠
+                        dto.setDepartment(user.getDepartment());
+                        memberDtos.add(dto);
+                    });
+                }
+
+                return memberDtos;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("동아리 멤버 조회 중 오류 발생", e);
+            }
+        }
 }
