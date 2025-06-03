@@ -145,7 +145,7 @@ public class ClubMembershipService {
         }
     }
 
-    // 특정 정산에 대한 정산 현황 리스트 조회
+    // 특정 가입비에 대한 정산 현황 리스트 조회
     public List<PaymentStateDto> getPaymentStatesByPayId(PaymentStateDto paymentStateDto) throws Exception {
         try {
             // 정산 ID 유효성 체크
@@ -170,7 +170,7 @@ public class ClubMembershipService {
         }
     }
 
-    // 정산 리스트 가져오기
+    // 가입비 리스트 가져오기
     public PaymentHistoryDto getPaymentList(PaymentHistoryListIdDto paymentHistoryListIdDto) throws Exception{
         try {
             userRepository.findById(paymentHistoryListIdDto.getUserId())
@@ -211,7 +211,7 @@ public class ClubMembershipService {
         }
     }
 
-    // 관리자 정산 리스트 가져오기
+    // 관리자 가입비 리스트 가져오기
     public PaymentHistoryDto getManagementPaymentList(PaymentHistoryListIdDto paymentHistoryListIdDto) throws Exception{
         try {
             // 관리자 권한 확인
@@ -241,11 +241,12 @@ public class ClubMembershipService {
                 return completePay;
             }
             return new PaymentHistoryDto(null,
-            paymentHistoryListIdDto.getClubId(),
-            "가입비",
-            0,
-            null,false
-                    );
+                    paymentHistoryListIdDto.getClubId(),
+                    "가입비",
+                    0,
+                    null,
+                    false
+            );
         }
         catch (Exception e){
             e.printStackTrace();

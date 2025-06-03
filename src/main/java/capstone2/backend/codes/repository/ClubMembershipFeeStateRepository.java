@@ -42,7 +42,7 @@ public interface ClubMembershipFeeStateRepository  extends JpaRepository<ClubMem
       AND EXISTS (
           SELECT ps FROM ClubMembershipFeeState ps
           WHERE ps.membershipFeeId = ph.membershipFeeId
-            AND ps.hasPaid = true
+            AND ps.hasPaid = false 
       )
     """)
     ClubMembershipFeeHistory findUnpaidByAllMembersInClub(@Param("clubId") String clubId);
