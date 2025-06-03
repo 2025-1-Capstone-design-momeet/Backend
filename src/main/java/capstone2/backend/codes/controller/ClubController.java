@@ -72,6 +72,8 @@ public class ClubController {
     public ResponseEntity<Response<?>> writeClubPromotion(@RequestBody ClubPromotionDto clubPromotionDto) {
         try {
             ClubPromotionDto resultDto = clubService.writeClubPromotion(clubPromotionDto);
+            System.out.println("DEBUG >>> clubPromotionDto class = " + clubPromotionDto.getClass().getName());
+
             if (resultDto != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(new Response<>(
                         "true", "동아리 홍보 작성 성공", resultDto));

@@ -1,5 +1,6 @@
 package capstone2.backend.codes.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,5 +16,6 @@ public class ClubPromotionDto {
     private int dues;
     private boolean interview;
     private LocalDateTime endDate;
+    @JsonProperty("isRecruiting")
     private boolean isRecruiting;
 }

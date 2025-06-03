@@ -333,21 +333,26 @@ public class ClubService {
     public ClubPromotionDto writeClubPromotion(ClubPromotionDto clubPromotionDto) {
         try {
             String clubId = clubPromotionDto.getClubId();
+
             Club club = clubRepository.findById(clubId)
                     .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
 
-            ClubPromotion promotion = new ClubPromotion();
-            promotion.setClubId(clubId);
+            // 기존 ClubPromotion이 있다면 업데이트
+            ClubPromotion promotion = clubPromotionRepository.findByClubId(clubId)
+                    .orElse(new ClubPromotion()); // 없으면 새로 생성
+
+            // 핵심: @MapsId 사용 시 club만 설정하면 clubId 자동 설정됨
+            promotion.setClub(club);
             promotion.setTarget(clubPromotionDto.getTarget());
             promotion.setDues(clubPromotionDto.getDues());
             promotion.setInterview(clubPromotionDto.isInterview());
             promotion.setEndDate(clubPromotionDto.getEndDate());
             promotion.setRecruiting(clubPromotionDto.isRecruiting());
 
-            promotion.setClub(club);
             clubPromotionRepository.save(promotion);
+
             return new ClubPromotionDto(
-                    clubId,
+                    club.getClubId(),
                     promotion.getTarget(),
                     promotion.getDues(),
                     promotion.isInterview(),

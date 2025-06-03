@@ -17,6 +17,7 @@ public class ClubPromotion {
     @Column(name = "clubId", nullable = false)
     private String clubId;
 
+    @MapsId
     @OneToOne
     @JsonIgnore
     @JoinColumn(name = "clubId", referencedColumnName = "clubId") // FK → Club.clubId
