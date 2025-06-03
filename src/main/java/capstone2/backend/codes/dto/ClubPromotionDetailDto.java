@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ClubPromotionDetailDto {
     private String clubName;
+    private String category;
     private String target;
     private int dues;
     private boolean interview;
