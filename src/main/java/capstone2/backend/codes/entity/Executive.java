@@ -24,6 +24,7 @@ public class Executive {
     @Column(name = "duty")
     private String duty;
 
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", insertable = false, updatable = false)
     private User user;

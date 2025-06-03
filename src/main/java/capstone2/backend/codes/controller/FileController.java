@@ -88,7 +88,7 @@ public class FileController {
             // 타입에 따라 기본 디렉토리 설정
             String baseDir;
             switch (type) {
-                case "poster" -> baseDir = imageDir; // @Value("${file.image-dir}")
+                case "poster" -> baseDir = postDir; // @Value("${file.image-dir}")
                 case "posts" -> baseDir = postDir; // @Value("${file.post-dir}")
                 default -> {
                     return ResponseEntity.badRequest().body(
