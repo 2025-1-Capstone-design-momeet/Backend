@@ -390,4 +390,82 @@ public class ClubService {
             throw new RuntimeException("동아리 홍보 상세 조회 중 오류 발생", e);
         }
     }
+
+    @Transactional
+    public ExecutiveRequestDto addClubExecutive(ExecutiveRequestDto executiveRequestDto) {
+        try {
+            String clubId         = executiveRequestDto.getClubId();
+            String callerUserId   = executiveRequestDto.getUserId();         // 권한을 확인할 사용자 ID
+            String newExecutiveId = executiveRequestDto.getNewExecutiveId();  // 새로 임원으로 추가할 사용자 ID
+            String duty           = executiveRequestDto.getDuty();
+
+            // 1) 호출자(callerUserId)가 동아리를 관리할 권한이 있는지 확인
+            if (!canManageClub(callerUserId, clubId)) {
+                throw new IllegalArgumentException("해당 동아리를 관리할 권한이 없습니다.");
+            }
+
+            // 2) 이미 newExecutiveId가 같은 동아리의 임원인지 확인
+            boolean alreadyExec = executiveRepository.existsByUserIdAndClubId(newExecutiveId, clubId);
+            if (alreadyExec) {
+                throw new IllegalArgumentException("이미 해당 사용자는 임원으로 등록되어 있습니다.");
+            }
+
+            // 3) Club 존재 여부 확인 (권한 검사에서 이미 존재를 확인한 경우가 많지만, 안전을 위해 다시 확인)
+            clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
+
+            // 4) 새 임원(newExecutiveId)이 유저 테이블에 존재하는지 확인
+            User user = userRepository.findById(newExecutiveId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+
+            // 5) Executive 엔티티 생성 및 필드 세팅
+            Executive executive = new Executive();
+            executive.setUserId(newExecutiveId);
+            executive.setClubId(clubId);
+            executive.setDuty(duty);
+            executive.setUser(user);
+
+            // 6) 저장
+            executiveRepository.save(executive);
+
+            return executiveRequestDto;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("임원 추가 중 오류 발생", e);
+        }
+    }
+
+    @Transactional
+    public boolean deleteExecutive(ExecutiveRequestDto executiveRequestDto) {
+        String clubId       = executiveRequestDto.getClubId();
+        String callerUserId = executiveRequestDto.getUserId();
+        String targetExecId = executiveRequestDto.getNewExecutiveId();
+
+        // 1) 호출자(callerUserId)가 동아리를 관리할 권한이 있는지 확인
+        if (!canManageClub(callerUserId, clubId)) {
+            throw new IllegalArgumentException("해당 동아리를 관리할 권한이 없습니다.");
+        }
+
+        // 2) 삭제할 임원(targetExecId)이 실제로 존재하는지 확인
+        ClubMembersId execId = new ClubMembersId(targetExecId, clubId);
+        Executive execEntity = executiveRepository.findById(execId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 임원이 존재하지 않습니다."));
+
+        // 3) 해당 임원 레코드 삭제
+        executiveRepository.delete(execEntity);
+
+        // 4) 삭제된 사용자를 일반 멤버로 등록 (이미 멤버라면 중복 방지)
+        boolean alreadyMember = clubMembersRepository.existsByUserIdAndClubId(targetExecId, clubId);
+        if (!alreadyMember) {
+            ClubMembers downgraded = new ClubMembers();
+            downgraded.setUserId(targetExecId);
+            downgraded.setClubId(clubId);
+            downgraded.setRole(null); // 역할이 없는 일반 멤버로 처리
+            clubMembersRepository.save(downgraded);
+        }
+
+        return true;
+    }
+
 }

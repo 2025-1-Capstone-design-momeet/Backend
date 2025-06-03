@@ -148,4 +148,38 @@ public class ClubController {
                     "false","동아리 위임 중 오류 발생", null));
         }
     }
+    
+    @PostMapping("/executive/add")
+    public ResponseEntity<Response<?>> addExecutive(@RequestBody ExecutiveRequestDto clubExecutiveDto) {
+        try {
+            ExecutiveRequestDto resultDto = clubService.addClubExecutive(clubExecutiveDto);
+            if (resultDto != null) {
+                return ResponseEntity.ok(new Response<>(
+                        "true", "동아리 임원 추가 성공", resultDto));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
+                        "false", "동아리 임원 추가 실패: 해당 동아리가 존재하지 않거나 권한이 없습니다.", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 임원 추가 중 오류 발생", null));
+        }
+    }
+
+    @PostMapping("/executive/remove")
+    public ResponseEntity<Response<?>> removeExecutive(@RequestBody ExecutiveRequestDto clubExecutiveDto) {
+        try {
+            boolean isRemoved = clubService.deleteExecutive(clubExecutiveDto);
+            if (isRemoved) {
+                return ResponseEntity.ok(new Response<>(
+                        "true", "동아리 임원 삭제 성공", null));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
+                        "false", "동아리 임원 삭제 실패: 해당 동아리가 존재하지 않거나 권한이 없습니다.", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 임원 삭제 중 오류 발생", null));
+        }
+    }
 }
