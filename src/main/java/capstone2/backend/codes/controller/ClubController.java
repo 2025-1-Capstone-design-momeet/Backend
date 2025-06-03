@@ -97,7 +97,6 @@ public class ClubController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
                     "false", "동아리 홍보 상세 조회 중 오류 발생", null));
         }
-
     }
 
     @PostMapping("/application/decision")
@@ -120,7 +119,7 @@ public class ClubController {
     @PostMapping("/application/list")
     public ResponseEntity<Response<?>> getClubApplicationList(@RequestBody ClubIdRequestDto clubIdRequestDto) {
         try {
-            List<WaitingList> waitingList = clubService.getClubApplicationList(clubIdRequestDto);
+            List<WaitingListListDto> waitingList = clubService.getClubApplicationList(clubIdRequestDto);
             return ResponseEntity.ok(new Response<>(
                     "true", "동아리 신청 리스트 조회 성공", waitingList));
         } catch (IllegalArgumentException e) {
@@ -180,6 +179,21 @@ public class ClubController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
                     "false", "동아리 임원 삭제 중 오류 발생", null));
+        }
+    }
+
+    @PostMapping("/members")
+    public ResponseEntity<Response<?>> getClubMembers(@RequestBody ClubIdRequestDto clubIdRequestDto) {
+        try {
+            List<ClubMembersDto> members = clubService.getClubMembers(clubIdRequestDto.getClubId());
+            return ResponseEntity.ok(new Response<>(
+                    "true", "동아리 멤버 리스트 조회 성공", members));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response<>(
+                    "false", e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 멤버 리스트 조회 중 오류 발생", null));
         }
     }
 }

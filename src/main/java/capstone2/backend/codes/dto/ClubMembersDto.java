@@ -1,0 +1,16 @@
+package capstone2.backend.codes.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ClubMembersDto {
+    private String userId;
+    private String userName;
+    private String department;
+    private String duty; // 직책 (예: 회장, 부회장, 총무 등)
+    private String role;
+}
