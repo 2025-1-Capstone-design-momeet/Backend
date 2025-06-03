@@ -21,7 +21,7 @@ public class PaymentService {
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final PaymentStateRepository paymentStateRepository;
     private final ClubService clubService;
-
+    private final PersonalNotificationService alarmService;
     // 투표에서 정산 할 인원 가져오기
     public PaymentMembersDto payMembers(VoteStateDto voteStateDto) throws Exception{
         try {
@@ -108,6 +108,19 @@ public class PaymentService {
                         paymentHistory,
                         user
                 );
+                PersonalNotificationDto personalNotificationDto = new PersonalNotificationDto(
+                        null,
+                        0,
+                        paymentWriteDto.getTitle(),
+                        paymentWriteDto.getTitle()+" 정산을 시작합니다!" +
+                                "\n계좌번호 : "+paymentWriteDto.getAccount() +
+                                "\n금액 : "+paymentWriteDto.getAmount(),
+                        user.getUserId(),
+                        paymentHistory.getPayId()
+
+                );
+
+                alarmService.writeAlarm(personalNotificationDto);
                 paymentStateRepository.save(paymentState);
             }
 
@@ -135,6 +148,16 @@ public class PaymentService {
             // 상태 변경
             paymentState.setHasPaid(paymentStateDto.isHasPaid());  // 또는 false로 변경도 가능
             paymentStateRepository.save(paymentState);
+            PersonalNotificationDto personalNotificationDto = new PersonalNotificationDto(
+                    null,
+                    0,
+                    null,
+                    null,
+                    paymentStateDto.getUserId(),
+                    paymentStateDto.getPayId()
+            );
+
+            alarmService.deleteAlarm(personalNotificationDto);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
