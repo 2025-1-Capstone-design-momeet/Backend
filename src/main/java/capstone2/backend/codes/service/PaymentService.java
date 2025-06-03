@@ -111,7 +111,7 @@ public class PaymentService {
                 PersonalNotificationDto personalNotificationDto = new PersonalNotificationDto(
                         null,
                         0,
-                        paymentWriteDto.getTitle(),
+                        "["+paymentWriteDto.getClubId()+"]"+paymentWriteDto.getTitle(),
                         paymentWriteDto.getTitle()+" 정산을 시작합니다!" +
                                 "\n계좌번호 : "+paymentWriteDto.getAccount() +
                                 "\n금액 : "+paymentWriteDto.getAmount(),
