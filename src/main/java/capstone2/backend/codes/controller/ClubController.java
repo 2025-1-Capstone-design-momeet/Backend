@@ -68,6 +68,36 @@ public class ClubController {
         }
     }
 
+    @PostMapping("/promotion/write")
+    public ResponseEntity<Response<?>> writeClubPromotion(@RequestBody ClubPromotionDto clubPromotionDto) {
+        try {
+            ClubPromotionDto resultDto = clubService.writeClubPromotion(clubPromotionDto);
+            if (resultDto != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(new Response<>(
+                        "true", "동아리 홍보 작성 성공", resultDto));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response<>(
+                        "false", "동아리 홍보 작성 실패: 해당 동아리가 존재하지 않습니다.", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 홍보 작성 중 오류 발생", null));
+        }
+    }
+
+    @PostMapping("/promotion/detail")
+    public ResponseEntity<Response<?>> getClubPromotionDetail(@RequestBody ClubIdRequestDto clubIdRequestDto) {
+        try {
+            ClubPromotionDetailDto promotionDto = clubService.getClubPromotionDetail(clubIdRequestDto);
+            return ResponseEntity.ok(new Response<>(
+                    "true", "동아리 홍보 상세 조회 성공", promotionDto));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 홍보 상세 조회 중 오류 발생", null));
+        }
+
+    }
+
     @PostMapping("/application/decision")
     public ResponseEntity<Response<?>> approveApplication(@RequestBody WaitingListDecisionDto waitingListDecisionDto) {
         try {
