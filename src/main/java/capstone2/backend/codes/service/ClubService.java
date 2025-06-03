@@ -314,7 +314,18 @@ public class ClubService {
 
         // 임원인지 확인
         boolean isExecutive = executiveRepository.existsByUserIdAndClubId(userId, clubId);
-
         return isPresident || isExecutive;
+    }
+
+    public List<WaitingList> getClubApplicationList(ClubIdRequestDto clubIdRequestDto) {
+        try {
+            String clubId = clubIdRequestDto.getClubId();
+            Club club = clubRepository.findById(clubId)
+                    .orElseThrow(() -> new IllegalArgumentException("동아리가 존재하지 않습니다."));
+            return waitingListRepository.findByClubId(club.getClubId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("동아리 신청 리스트 조회 중 오류 발생");
+        }
     }
 }

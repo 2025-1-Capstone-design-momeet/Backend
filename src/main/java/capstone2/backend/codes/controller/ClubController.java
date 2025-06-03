@@ -3,6 +3,7 @@ package capstone2.backend.codes.controller;
 import capstone2.backend.codes.config.Response;
 import capstone2.backend.codes.dto.*;
 import capstone2.backend.codes.entity.Club;
+import capstone2.backend.codes.entity.WaitingList;
 import capstone2.backend.codes.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -79,6 +82,21 @@ public class ClubController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
                     "false", "동아리 신청 승인 중 오류 발생", null));
+        }
+    }
+
+    @PostMapping("/application/list")
+    public ResponseEntity<Response<?>> getClubApplicationList(@RequestBody ClubIdRequestDto clubIdRequestDto) {
+        try {
+            List<WaitingList> waitingList = clubService.getClubApplicationList(clubIdRequestDto);
+            return ResponseEntity.ok(new Response<>(
+                    "true", "동아리 신청 리스트 조회 성공", waitingList));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response<>(
+                    "false", e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response<>(
+                    "false", "동아리 신청 리스트 조회 중 오류 발생", null));
         }
     }
 
