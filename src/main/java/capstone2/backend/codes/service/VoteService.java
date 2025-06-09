@@ -128,7 +128,6 @@ public class VoteService {
     }
 
 
-    // 투표 선택
     public boolean vote(VoteStateDto voteStateDto) throws Exception {
         try {
             Vote vote = voteRepository.findById(voteStateDto.getVoteID())
@@ -151,31 +150,29 @@ public class VoteService {
             );
 
             if (existingVoteStateOpt.isPresent()) {
-                // 이미 존재하면 수정
-                VoteState existingVoteState = existingVoteStateOpt.get();
-                existingVoteState.setVoteNum(voteStateDto.getVoteNum());
-                existingVoteState.setVoteContent(voteContent); // 연관 투표 항목도 갱신
-                voteStateRepository.save(existingVoteState);
-            } else {
-                // 존재하지 않으면 새로 생성
-                VoteState newVoteState = new VoteState(
-                        voteStateDto.getUserId(),
-                        voteStateDto.getVoteID(),
-                        voteContent.getVoteContentId(),
-                        voteStateDto.getVoteNum(),
-                        user,
-                        vote,
-                        voteContent
-                );
-                voteStateRepository.save(newVoteState);
+                // ✅ 기존 투표 삭제
+                voteStateRepository.delete(existingVoteStateOpt.get());
             }
+
+            // ✅ 새로운 투표 저장
+            VoteState newVoteState = new VoteState(
+                    voteStateDto.getUserId(),
+                    voteStateDto.getVoteID(),
+                    voteContent.getVoteContentId(),
+                    voteStateDto.getVoteNum(),
+                    user,
+                    vote,
+                    voteContent
+            );
+            voteStateRepository.save(newVoteState);
 
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception();
+            throw new Exception("투표 처리 중 오류 발생", e);
         }
     }
+
 
 
     // 해당 유저의 투표 현황
