@@ -53,7 +53,7 @@ public class PaymentService {
                                     user.isGender()
                             ))
                             .collect(Collectors.toList()),
-                    voteContentRepository.findUsersNotSelectedVoteContent(club.getClubId(),voteStateDto.getVoteContentId()).stream()
+                    voteContentRepository.findUsersNotVotedAndPresident(club.getClubId(),voteStateDto.getVoteContentId()).stream()
                             .map(user -> new UserDto(
                                     user.getUserId(),
                                     user.getPw(),
