@@ -53,9 +53,15 @@ public interface VoteContentRepository extends JpaRepository<VoteContent, String
                     "    SELECT vs.userId " +
                     "    FROM VoteState vs " +
                     "    WHERE vs.voteContentId = :voteContentId " +
-                    ")",
-            nativeQuery = true)
-    List<User> findUsersNotSelectedVoteContent(
+                    ") " +
+                    "UNION " +
+                    "SELECT u.* " +
+                    "FROM President p " +
+                    "JOIN User u ON p.userId = u.userId " +
+                    "WHERE p.clubId = :clubId",
+            nativeQuery = true
+    )
+    List<User> findUsersNotVotedAndPresident(
             @Param("clubId") String clubId,
             @Param("voteContentId") String voteContentId
     );
