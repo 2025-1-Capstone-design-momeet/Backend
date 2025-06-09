@@ -77,6 +77,23 @@ public class UserController {
         }
     }
 
+    @PostMapping("/updateSchoolInfo")
+    public ResponseEntity<Response<?>> updateSchoolInfo(@RequestBody UserDto dto) {
+        try {
+            if (userService.updateSchoolInfo(dto)) {
+                return ResponseEntity.ok(
+                        new Response<>("true", "학교 정보가 수정되었습니다.", null)
+                );
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new Response<>("false", "해당 사용자를 찾을 수 없습니다.", null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response<>("false", "학교 정보 수정 중 오류가 발생했습니다.", null));
+        }
+    }
+
     @PostMapping("/info")
     public ResponseEntity<Response<?>> getUserInfo(@RequestBody UserDto dto) {
         try {

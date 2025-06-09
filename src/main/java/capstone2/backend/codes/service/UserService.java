@@ -91,6 +91,22 @@ public class UserService {
                     userDto.getGrade(),
                     userDto.isGender()
             );
+            userRepository.save(user);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception();
+        }
+    }
+
+    public boolean updateSchoolInfo(UserDto userDto) throws Exception {
+        try {
+            User user = userRepository.findById(userDto.getUserId()).orElse(null);
+            if (user == null) return false;
+            user.setDepartment(userDto.getDepartment());
+            user.setStudentNum(userDto.getStudentNum());
+            user.setGrade(userDto.getGrade());
+            userRepository.save(user);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
